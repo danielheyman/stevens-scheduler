@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Stevens Scheduler</title>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://cdn.jsdelivr.net/vue.resource/1.2.1/vue-resource.min.js"></script>
+    <style media="screen">
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 14px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+        }
+        
+        .left {
+            right: 300px;
+            position: fixed;
+            overflow: hidden;
+            height: 100%;
+            top: 0;
+            left: 0;
+            overflow: auto;
+        }
+        
+        .right {
+            padding: 10px;
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 300px;
+            height: 100%;
+            border-left: 1px solid gray;
+        }
+        
+        .right select, .right input:not([type=checkbox]) {
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        table {
+            width: 100%;
+            height: 100%;
+            table-layout: fixed;
+            position: absolute; 
+            top: 0; 
+            bottom: 0;
+            border-collapse: collapse;
+            min-height: 800px;
+            min-width: 500px;
+        }
+        
+        table tbody td {
+            border-right: 1px solid #333;
+            border-top: 1px solid #333;
+        }
+        
+        table .time {
+            width: 70px;
+            background: #eee;
+            text-align: center;
+        }
+        
+        table thead tr {
+            background: #eee;
+            text-align: center;
+        }
+        
+        table .block {
+            vertical-align: top;
+            position: relative;
+        }
+        
+        table .block > div {
+            height: 25%;
+            border-bottom: 1px dashed #ddd;
+            width: 99%;
+        }
+        
+        table .item {
+            position: absolute;
+            height: 200%;
+            background: rgba(47, 130, 224, 0.4);
+            z-index: 1;
+            width: 99%;
+            padding: 2px;
+            overflow: hidden;
+            font-size: 11px;
+            border: 1px solid #000;
+            cursor: pointer;
+        }
+        
+        table .item.selected {
+            background: rgba(47, 224, 82, 0.8);
+        }
+        
+        .selectedList {
+            border: 1px solid #ccc;
+        }
+        
+        .selectedList div {
+            background: rgba(47, 130, 224, .4);
+            padding: 3px;
+            margin: 3px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        
+        .selectedList div.selected {
+            background: rgba(47, 224, 82, .8);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="left">
+            <table>
+                <thead>
+                    <tr>
+                        <td class="time"></td>
+                        <td v-for="day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']" v-text="day"></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="hour in [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]">
+                        <td v-text="((hour - 1) % 12 + 1) + ':00'" class="time"></td>
+                        <td v-for="day in ['M', 'T', 'W', 'R', 'F']" class="block">
+                            <div v-for="subhour in [0, 15, 45]">
+                                <div v-for="c in selected.concat(course)" @dblClick="click(c)" v-if="c && courseHere(day, hour, subhour, c)" :class="{item: true, selected: c != course }" :style="{height: courseHere(day, hour, subhour, c).length * 100 + '%'}">
+                                    {{ c.section }}<br>
+                                    {{ c.title }}<br>
+                                    {{ c.instructor }}<br>
+                                    {{ courseHere(day, hour, subhour, c).loc }}<br>
+                                    {{ c.callNumber }}<br>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="right">
+            Term:
+            <select v-model="term" @change="changedTerm">
+                <option v-for="term in terms" v-text="term"></option>
+            </select>
+            <div v-if="courses.length">
+                <input v-model="search" placeholder="Search for a course...">
+                Courses:
+                <select size="25" v-model="course">
+                    <option v-for="c in searchedCourses" :value="c" v-text="c.section + ': ' + c.title"></option>
+                </select>
+                <input v-model="closed" type="checkbox"> Closed<br><br>
+                
+                <div v-if="webclasses(selected.concat(course)).length">
+                    Web Classes
+                    <div class="selectedList">
+                        <div v-for="c in webclasses(selected.concat(course))" @dblClick="click(c)"  :class="{selected: c != course }">
+                            {{ c.section }}: {{ c.title }}<br>
+                            {{ c.instructor }}<br>
+                            {{ c.callNumber }} 
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div v-else>Loading Courses...</div>
+            
+        </div>
+    </div>
+    <script type="text/javascript">
+        Vue.use(VueResource);
+        
+        var server = function(t) { return "http://127.0.0.1:3000/" + t; };
+        
+        var app = new Vue({
+            el: '#app',
+            data: {
+                terms: [],
+                term: "",
+                courses: [],
+                course: null,
+                selected: [],
+                search: "",
+                closed: false
+            },
+            created: function() {
+                Vue.http.get(server('terms')).then(function(res) {
+                    this.terms = res.body.sort().reverse();
+                    if(this.hashExists() && (index = this.terms.indexOf(location.hash.slice(1,6))) > -1) {
+                        this.term = this.terms[index];
+                    }
+                    else {
+                        this.term = this.terms[0];
+                    }
+                    this.changedTerm(true);
+                }.bind(this), function(err) {});
+            },
+            computed: {
+                searchedCourses: function() {
+                    var courses = this.courses;
+                    if(!this.closed) {
+                        course = courses.filter(function(course) {
+                            return course.open;
+                        });
+                    }
+                    if(!this.search) return courses.sort(function(a, b) {
+                        return a.section > b.section ? 1 : -1;
+                    });
+                    
+                    
+                    var search = this.search.toLowerCase();
+                    return courses.filter(function(course) {
+                        return course.section.toLowerCase().indexOf(search) > -1 ||
+                            course.title.toLowerCase().indexOf(search) > -1 ||
+                            course.instructor.toLowerCase().indexOf(search) > -1 ||
+                            course.callNumber.indexOf(search) > -1;
+                    }).sort(function(a, b) {
+                        return a.section > b.section ? 1 : -1;
+                    });
+                } 
+            },
+            methods: {
+                webclasses: function(courses) {
+                    return courses.filter(function(course) {
+                        return course && !course.daysTimeLocation[0].days;
+                    });
+                },
+                changedTerm: function(loadHash) {
+                    this.courses = [];
+                    this.selected = [];
+                    Vue.http.get(server(this.term)).then(function(res) {
+                        this.courses = res.body;
+                        if(loadHash === true && this.hashExists()) {
+                            var hashes = location.hash.slice(7).split(',');
+                            this.selected = this.courses.filter(function(course) {
+                                return hashes.indexOf(course.callNumber.toString()) > -1;
+                            });
+                        }
+                    }.bind(this), function(err) {});
+                },
+                courseHere: function(day, hour, subhour, course) {
+                    if(!course) return;
+                    var res = null;
+                    course.daysTimeLocation.forEach(function(time) {
+                        if(!time.days || time.days.indexOf(day) === -1) return;
+                        var start = this.convertTime(time.start);
+                        var end = this.convertTime(time.end);
+                        if(start[0] != hour) return;
+                        if(start[1] != subhour) return;
+                        res = {
+                            length: ((end[0] + end[1] / 60) - (start[0] + start[1] / 60)),
+                            loc: time.loc
+                        };
+                    }.bind(this));
+                    return res;
+                },
+                convertTime: function(time) {
+                    res = time.slice(0, 5).split(":").map(Number);
+                    if(time[5] == 'P') res[0] += 12;
+                    return res;
+                },
+                click: function(course) {
+                    if(this.course == course) {
+                        this.course = null;
+                        this.selected.push(course);
+                    }
+                    else {
+                        this.selected.splice(this.selected.indexOf(course), 1);
+                    }
+                    
+                    var hash = this.term + "=";
+                    hash += this.selected.map(function(s) {
+                        return s.callNumber;
+                    }).join();
+                    location.hash = hash;
+                },
+                hashExists: function() {
+                    return location.hash.match(/#\d+[A|B|F|S]=[\d+,?]+/);
+                }
+            }
+        });
+
+    </script>
+</body>
+
+</html>
