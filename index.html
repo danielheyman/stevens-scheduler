@@ -218,7 +218,7 @@
                 totalCredits: function() {
                     return this.selected.map(function(course) {
                         return course.credits;
-                    }).reduce(function(a, b) {
+                    }).concat(0).reduce(function(a, b) {
                         return a + b;
                     });
                 },
