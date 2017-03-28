@@ -169,6 +169,8 @@
                 </select>
                 <input v-model="closed" type="checkbox"> Closed<br><br>
                 
+                Total Credits: {{ totalCredits }}<br><br>
+                
                 <div v-if="webclasses(selected.concat(course)).length">
                     Web Classes
                     <div class="selectedList">
@@ -213,6 +215,13 @@
                 }.bind(this), function(err) {});
             },
             computed: {
+                totalCredits: function() {
+                    return this.selected.map(function(course) {
+                        return course.credits;
+                    }).reduce(function(a, b) {
+                        return a + b;
+                    });
+                },
                 searchedCourses: function() {
                     var courses = this.courses;
                     if(!this.closed) {
