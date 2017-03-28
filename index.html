@@ -432,6 +432,7 @@
                             {
                                 return hashes.indexOf(course.callNumber.toString()) > -1;
                             });
+                            if(this.selected.length) this.changed = true;
                         }
                     }.bind(this), function(err) {});
                 },
