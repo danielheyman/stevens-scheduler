@@ -263,7 +263,7 @@
                 },
                 convertTime: function(time) {
                     res = time.slice(0, 5).split(":").map(Number);
-                    if(time[5] == 'P') res[0] += 12;
+                    if(time[5] == 'P' && time[0] != 12) res[0] += 12;
                     return res;
                 },
                 click: function(course) {
