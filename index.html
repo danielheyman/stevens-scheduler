@@ -340,16 +340,17 @@
                     if ((index = this.terms.indexOf(location.hash.slice(1, 6))) > -1)
                     {
                         if(this.term != this.terms[index]) {
+                            this.term = this.terms[index];
                             this.changedTerm(true, true);
                         }
                         else {
+                            this.term = this.terms[index];
                             var hashes = location.hash.slice(7).split(',');
                             this.selected = this.courses.filter(function(course)
                             {
                                 return hashes.indexOf(course.callNumber.toString()) > -1;
                             });
                         }
-                        this.term = this.terms[index];
                     }
                     
                 },
