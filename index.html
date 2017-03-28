@@ -38,10 +38,16 @@
             border-left: 1px solid gray;
         }
         
-        .right select, .right input:not([type=checkbox]) {
+        .right select {
             display: inline-block;
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+            margin-top: 5px;
+        }
+        
+        .right input:not([type=checkbox]) {
+            width: 100%;
+            margin-top: 5px;
         }
         
         table {
@@ -62,14 +68,17 @@
         }
         
         table .time {
-            width: 70px;
+            width: 50px;
             background: #eee;
             text-align: center;
+            font-weight: bold;
         }
         
         table thead tr {
             background: #eee;
             text-align: center;
+            font-weight: bold;
+            line-height: 1.5;
         }
         
         table .block {
@@ -102,6 +111,7 @@
         
         .selectedList {
             border: 1px solid #ccc;
+            margin-top: 5px;
         }
         
         .selectedList div {
@@ -152,8 +162,8 @@
                 <option v-for="term in terms" v-text="term"></option>
             </select>
             <div v-if="courses.length">
-                <input v-model="search" placeholder="Search for a course...">
                 Courses:
+                <input v-model="search" placeholder="Search for a course...">
                 <select size="25" v-model="course">
                     <option v-for="c in searchedCourses" :value="c" v-text="c.section + ': ' + c.title"></option>
                 </select>
