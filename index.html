@@ -327,7 +327,7 @@
                     this.changed = false;
                 },
                 load: function(schedule) {
-                    if(this.changed) {
+                    if(this.changed && this.selected.length) {
                         if (!window.confirm("Are you sure you want to discard your changes?")) {
                             return;
                         }
