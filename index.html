@@ -119,7 +119,7 @@
             background: rgba(47, 224, 82, 0.8);
         }
 
-        table .item.hovering {
+        table .item.selected.hovering {
             background: rgba(222, 104, 73, 0.8);
             z-index: 3;
         }
@@ -179,7 +179,7 @@
                         <td v-for="day in ['M', 'T', 'W', 'R', 'F']" class="block">
                             <div v-for="subhour in [0, 15, 45]">
                                 <div v-for="c in selected.concat(course)" @dblClick="click(c)" @mouseenter="hovering = c" @mouseleave="hovering = null" v-if="c && courseHere(day, hour, subhour, c)" :class="{item: true, selected: c != course, hovering: hovering == c}" :style="{height: hovering == c ? 'auto' : courseHere(day, hour, subhour, c).length * 100 + '%', minHeight: hovering != c ? 'auto' : courseHere(day, hour, subhour, c).length * 100 + '%'}">
-                                    {{ c.section }}<br> {{ c.title }}<br> {{ c.instructor }}<br> {{ courseHere(day, hour, subhour, c).loc }}<br> {{ c.callNumber }}<br>
+                                    {{ c.section }}<br> {{ c.title }}<br> {{ c.instructor }}<br> {{ courseHere(day, hour, subhour, c).loc }}<br> {{ c.credits + ' credit' + (c.credits == 1 ? '' : 's') }}<br> {{ c.callNumber }}<br>
                                 </div>
                             </div>
                         </td>
@@ -291,7 +291,9 @@
                 },
                 searchedCourses: function()
                 {
-                    var courses = this.courses;
+                    var courses = this.courses.filter(function(course) {
+                        return this.selected.indexOf(course) === -1;
+                    }.bind(this));
                     if (!this.closed)
                     {
                         course = courses.filter(function(course)
@@ -480,6 +482,7 @@
                     else
                     {
                         this.selected.splice(this.selected.indexOf(course), 1);
+                        this.hovering = false;
                     }
 
                     location.hash = this.generateHash();
