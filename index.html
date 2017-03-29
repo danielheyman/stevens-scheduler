@@ -341,7 +341,7 @@
                     {
                         if(this.term != this.terms[index]) {
                             this.term = this.terms[index];
-                            this.changedTerm(true, true);
+                            this.changedTerm(true);
                         }
                         else {
                             this.term = this.terms[index];
@@ -393,7 +393,7 @@
                         return course && course.daysTimeLocation[0].site == 'WS';
                     });
                 },
-                changedTerm: function(loadHash, skipChanges)
+                changedTerm: function(loadHash)
                 {
                     this.courses = [];
                     this.selected = [];
@@ -433,7 +433,6 @@
                             {
                                 return hashes.indexOf(course.callNumber.toString()) > -1;
                             });
-                            if(this.selected.length && !skipChanges) this.changed = true;
                         }
                     }.bind(this), function(err) {});
                 },
