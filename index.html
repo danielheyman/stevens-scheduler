@@ -104,7 +104,6 @@
         
         table .item {
             position: absolute;
-            height: 200%;
             background: rgba(47, 130, 224, 0.4);
             z-index: 1;
             width: 99%;
@@ -113,10 +112,6 @@
             font-size: 11px;
             border: 1px solid #000;
             cursor: pointer;
-        }
-        
-        table .item:hover {
-            min-height: 70px;
         }
         
         table .item.selected {
@@ -177,7 +172,7 @@
                         <td v-text="((hour - 1) % 12 + 1) + ':00'" class="time"></td>
                         <td v-for="day in ['M', 'T', 'W', 'R', 'F']" class="block">
                             <div v-for="subhour in [0, 15, 45]">
-                                <div v-for="c in selected.concat(course)" @dblClick="click(c)" v-if="c && courseHere(day, hour, subhour, c)" :class="{item: true, selected: c != course }" :style="{height: courseHere(day, hour, subhour, c).length * 100 + '%'}">
+                                <div v-for="c in selected.concat(course)" @dblClick="click(c)" @mouseenter="hovering = c" @mouseleave="hovering = null" v-if="c && courseHere(day, hour, subhour, c)" :class="{item: true, selected: c != course }" :style="{height: hovering == c ? 'auto' : courseHere(day, hour, subhour, c).length * 100 + '%', minHeight: hovering != c ? 'auto' : courseHere(day, hour, subhour, c).length * 100 + '%'}">
                                     {{ c.section }}<br> {{ c.title }}<br> {{ c.instructor }}<br> {{ courseHere(day, hour, subhour, c).loc }}<br> {{ c.callNumber }}<br>
                                 </div>
                             </div>
@@ -240,6 +235,7 @@
             el: '#app',
             data:
             {
+                hovering: null,
                 currentstorage: null,
                 localStorage: [],
                 terms: [],
