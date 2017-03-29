@@ -397,6 +397,8 @@
                 },
                 changedTerm: function(loadHash)
                 {
+                    this.course = null;
+                    this.search = "";
                     this.courses = [];
                     this.selected = [];
                     Vue.http.get('https://stevens-scheduler.us-1.evennode.com/' + this.term).then(function(res)
