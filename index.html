@@ -223,7 +223,7 @@
             <div v-if="changed && currentstorage && selected.length" class="option floatRight" @click="discard">
                 Discard Changes
             </div>
-            <div v-if="changed && selected.length" class="option floatRight" @click="save">
+            <div v-if="(justLoaded || changed) && selected.length" class="option floatRight" @click="save">
                 Save
             </div>
         </div>
@@ -245,7 +245,8 @@
                 selected: [],
                 search: "",
                 closed: false,
-                changed: false
+                changed: false,
+                justLoaded: true
             },
             created: function()
             {
@@ -352,7 +353,7 @@
                             });
                         }
                     }
-                    
+                    this.justLoaded = false;
                 },
                 discard: function() {
                     if (!window.confirm("Are you sure you want to discard your changes?")) {
@@ -385,6 +386,7 @@
                     }
                     this.selected = [];
                     this.currentstorage = null;
+                    this.justLoaded = false;
                 },
                 webclasses: function(courses)
                 {
@@ -474,6 +476,7 @@
 
                     location.hash = this.generateHash();
                     this.changed = true;
+                    this.justLoaded = false;
                 },
                 hashExists: function()
                 {
