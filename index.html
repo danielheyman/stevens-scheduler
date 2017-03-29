@@ -159,6 +159,11 @@
         .footer .option.floatRight {
             float: right;
         }
+        
+        .hint {
+            float:right; 
+            font-size: 11px;
+        }
 
     </style>
 </head>
@@ -195,10 +200,14 @@
             <div v-if="courses.length">
                 Courses:
                 <input v-model="search" placeholder="Search for a course...">
-                <select size="25" v-model="course">
+                <select size="25" v-model="course" @keyup.delete="course = ''" @keyup.esc="course = ''">
                     <option v-for="c in searchedCourses" :value="c" v-text="c.section + ': ' + c.title"></option>
                 </select>
-                <input v-model="closed" type="checkbox"> Closed<br><br> Total Credits: {{ totalCredits }}<br><br>
+                <input v-model="closed" type="checkbox"> Closed
+                
+                <span v-if="course" class="hint">Press esc to cancel selection</span>
+                
+                <br><br> Total Credits: {{ totalCredits }}<br><br>
 
                 <div v-if="webclasses(selected.concat(course)).length">
                     Web Classes
