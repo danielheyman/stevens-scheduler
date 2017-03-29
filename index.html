@@ -362,6 +362,8 @@
                             this.changedTerm(true);
                         }
                         else {
+                            this.course = null;
+                            this.search = "";
                             this.term = this.terms[index];
                             var hashes = location.hash.slice(7).split(',');
                             this.selected = this.courses.filter(function(course)
