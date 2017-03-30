@@ -46,6 +46,7 @@
             width: 300px;
             height: 100%;
             border-left: 1px solid gray;
+            overflow: auto;
         }
         
         .right select {
@@ -189,8 +190,10 @@
                         <td v-text="((hour - 1) % 12 + 1) + ':00'" class="time"></td>
                         <td v-for="day in ['M', 'T', 'W', 'R', 'F']" class="block">
                             <div v-for="subhour in [0, 15, 45]">
-                                <div v-for="c in selected.concat(course)" @dblClick="click(c)" @mouseenter="hovering = c" @mouseleave="hovering = null" v-if="c && courseHere(day, hour, subhour, c)" :class="{item: true, selected: c != course, hovering: hovering == c}" :style="{height: hovering == c ? 'auto' : courseHere(day, hour, subhour, c).length * 100 + '%', minHeight: hovering != c ? 'auto' : courseHere(day, hour, subhour, c).length * 100 + '%'}">
-                                    {{ c.section }}<br> {{ c.title }}<br> {{ c.instructor }}<br> {{ courseHere(day, hour, subhour, c).loc }}<br> {{ c.credits + ' credit' + (c.credits == 1 ? '' : 's') }}<br> {{ c.callNumber }}<br>
+                                <div v-for="c in selected.concat(course)" @dblClick="click(c)" @mouseenter="hovering = c" @mouseleave="hovering = null" v-if="c && courseHere(day, hour, subhour, c)" 
+                                    :class="{item: true, selected: c != course, hovering: hovering == c}" 
+                                    :style="{height: hovering == c ? 'auto' : courseHere(day, hour, subhour, c).length * 100 + '%', minHeight: hovering != c ? 'auto' : courseHere(day, hour, subhour, c).length * 100 + '%'}">
+                                    {{ c.section }}<br> {{ c.title }}<br> {{ c.instructor }}<br> {{ courseHere(day, hour, subhour, c).loc }}<br> {{ c.credits + ' credit' + (c.credits == 1 ? '' : 's') }} <br>{{ Math.max(0, (c.maxEnrollment - c.currentEnrollment)) + '/' + c.maxEnrollment }} seats open<br> {{ c.callNumber }}<br>
                                 </div>
                             </div>
                         </td>
@@ -219,7 +222,7 @@
                     Web Classes
                     <div class="selectedList">
                         <div v-for="c in webclasses(selected.concat(course))" @dblClick="click(c)" :class="{selected: c != course }">
-                            {{ c.section }}: {{ c.title }}<br> {{ c.instructor }}<br> {{ c.callNumber }}
+                            {{ c.section }}: {{ c.title }}<br> {{ c.instructor }}<br> {{ c.credits + ' credit' + (c.credits == 1 ? '' : 's') }} <br>{{ Math.max(0, (c.maxEnrollment - c.currentEnrollment)) + '/' + c.maxEnrollment }} seats open <br>{{ c.callNumber }}
                         </div>
                     </div>
                 </div>
@@ -436,7 +439,7 @@
                                 title: xml[i].getAttribute('Title'),
                                 callNumber: xml[i].getAttribute('CallNumber'),
                                 credits: parseInt(xml[i].getAttribute('MinCredit')),
-                                maxEncrollment: xml[i].getAttribute('MaxEncrollment'),
+                                maxEnrollment: xml[i].getAttribute('MaxEnrollment'),
                                 currentEnrollment: xml[i].getAttribute('CurrentEnrollment'),
                                 status: xml[i].getAttribute('Status'),
                                 instructor: xml[i].getAttribute('Instructor1'),
