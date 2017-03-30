@@ -255,13 +255,13 @@ var app = new Vue(
         {
             if (this.course == course)
             {
-                ga('send', 'event', 'class', 'add');
+                ga('send', 'event', 'course', 'add');
                 this.course = null;
                 this.selected.push(course);
             }
             else
             {
-                ga('send', 'event', 'class', 'remove');
+                ga('send', 'event', 'course', 'remove');
                 this.selected.splice(this.selected.indexOf(course), 1);
                 this.hovering = false;
             }
