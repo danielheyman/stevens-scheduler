@@ -20,7 +20,7 @@
                     <tr v-for="hour in [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]">
                         <td v-text="((hour - 1) % 12 + 1) + ':00'" class="time"></td>
                         <td v-for="day in ['M', 'T', 'W', 'R', 'F']" class="block">
-                            <div v-for="subhour in [0, 15, 45]">
+                            <div v-for="subhour in [0, 15, 30, 45]">
                                 <div v-for="c in selected.concat(course)" @dblClick="click(c)" @mouseenter="hovering = c" @mouseleave="hovering = null" v-if="c && courseHere(day, hour, subhour, c)" 
                                     :class="{item: true, selected: c != course, hovering: hovering == c}" 
                                     :style="{height: hovering == c ? 'auto' : courseHere(day, hour, subhour, c).length * 100 + '%', minHeight: hovering != c ? 'auto' : courseHere(day, hour, subhour, c).length * 100 + '%'}">

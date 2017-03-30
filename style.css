@@ -88,7 +88,7 @@ table .block {
     position: relative;
 }
 
-table .block>div {
+table .block>div:not(:last-child) {
     height: 25%;
     border-bottom: 1px dashed #ddd;
     width: 99%;
