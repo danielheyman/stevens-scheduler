@@ -86,6 +86,8 @@ var app = new Vue(
     methods:
     {
         save: function() {
+            ga('send', 'event', 'schedule', 'save');
+            
             if(!this.currentstorage) {
                 var name = window.prompt("Please enter a name for the schedule");
                 if(!name) return;
@@ -100,6 +102,8 @@ var app = new Vue(
             this.changed = false;
         },
         load: function(schedule) {
+            ga('send', 'event', 'schedule', 'load');
+
             if(this.changed && this.selected.length) {
                 if (!window.confirm("Are you sure you want to discard your changes?")) {
                     return;
@@ -130,6 +134,8 @@ var app = new Vue(
             this.justLoaded = false;
         },
         discard: function() {
+            ga('send', 'event', 'schedule', 'discard');
+
             if (!window.confirm("Are you sure you want to discard your changes?")) {
                 return;
             }
@@ -139,10 +145,14 @@ var app = new Vue(
             this.load(schedule);
         },
         saveNew: function() {
+            ga('send', 'event', 'schedule', 'save-new');
+
             this.currentstorage = null;
             this.save();
         },
         deleteSchedule: function() {
+            ga('send', 'event', 'schedule', 'delete');
+
             if (window.confirm("Are you sure you want to delete the schedule " + this.currentstorage + "?")) {
                 var schedules = JSON.parse(localStorage.schedules);
                 delete schedules[this.currentstorage];
@@ -153,6 +163,8 @@ var app = new Vue(
             }
         },
         clear: function() {
+            ga('send', 'event', 'schedule', 'new');
+
             if(this.changed) {
                 if (!window.confirm("Are you sure you want to discard your changes?")) {
                     return;
@@ -171,6 +183,7 @@ var app = new Vue(
         },
         changedTerm: function(loadHash)
         {
+            ga('send', 'event', 'term', 'change');
             this.course = null;
             this.search = "";
             this.courses = [];
@@ -242,11 +255,13 @@ var app = new Vue(
         {
             if (this.course == course)
             {
+                ga('send', 'event', 'class', 'add');
                 this.course = null;
                 this.selected.push(course);
             }
             else
             {
+                ga('send', 'event', 'class', 'remove');
                 this.selected.splice(this.selected.indexOf(course), 1);
                 this.hovering = false;
             }
@@ -254,6 +269,7 @@ var app = new Vue(
             location.hash = this.generateHash();
             this.changed = true;
             this.justLoaded = false;
+            
         },
         hashExists: function()
         {
