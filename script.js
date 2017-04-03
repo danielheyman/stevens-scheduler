@@ -18,8 +18,9 @@ var app = new Vue(
         changed: false,
         justLoaded: true
     },
-    created: function()
+    mounted: function()
     {
+        this.$el.style.display = 'block';
         Vue.http.get('https://stevens-scheduler.us-1.evennode.com/terms').then(function(res)
         {
             var termsxml = parseXml(res.body).getElementsByTagName("Terms")[0].getElementsByTagName("Term");
@@ -327,3 +328,18 @@ m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 ga('create', 'UA-96461430-1', 'auto');
 ga('send', 'pageview');
+
+
+// HeadUser
+(function () { var hu = document.createElement("script"); hu.type = "text/javascript"; hu.async = true; hu.src = "//www.heeduser.com/supfiles/Script/widget.js"; var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(hu, s); })()
+var _heeduser = {
+type: "button",
+community: "sitscheduler",
+url: "https://sitscheduler.heeduser.com",
+placement: "middle-right",
+color: "#202021",
+widget_layout: "full",
+sso_token: ""
+}
+var heeduser_url = _heeduser.url + "/FeedbackWidget/Widget.aspx?sso_token=" + encodeURIComponent(_heeduser.sso_token);
+document.getElementById("feedback").innerHTML = '<a id="heeduser_wb" href="JavaScript:heeduser_openwidget(heeduser_url,\'' + _heeduser.widget_layout + '\')">Leave your feedback!</a>';

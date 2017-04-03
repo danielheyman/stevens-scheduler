@@ -9,6 +9,23 @@ body {
     -webkit-box-sizing: border-box;
 }
 
+#loading {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 18px;
+    color: #333;
+}
+
+#app {
+    display: none;
+    background: #fff;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
 .footer {
     position: fixed;
     right: 300px;
@@ -166,4 +183,21 @@ table .item.selected.hovering {
 .hint {
     float: right;
     font-size: 11px;
+}
+
+#heeduser_wb {
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    display: inline-block;
+    padding: 5px;
+    background: #4a5e8c;
+    width: 100%;
+    text-align: center;
+    line-height: 23px;
+    margin-top: 20px;
+}
+
+#heeduser_wb:hover {
+    background: #ccc;
 }

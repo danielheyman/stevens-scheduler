@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+    <div id="loading">
+        Loading Pure Awesomeness...
+    </div>
+        
     <div id="app">
         <div class="left">
             <table>
@@ -60,8 +64,11 @@
                     </div>
                 </div>
             </div>
-            <div v-else>Loading Courses...</div>
-
+            <div v-else class="loadingCourses">Loading Courses...</div>
+            
+            <div id="feedback">
+                
+            </div>
         </div>
         <div class="footer">
             <div v-if="localStorage" v-for="schedule in Object.keys(localStorage)" :class="{option: true, selected: currentstorage == schedule}" @click="load(schedule)">
