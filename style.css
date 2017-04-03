@@ -198,6 +198,10 @@ table .item.selected.hovering {
     margin-top: 20px;
 }
 
+.title {
+    font-weight: bold;
+}
+
 #heeduser_wb:hover {
     background: #ccc;
 }

@@ -39,12 +39,12 @@
             </table>
         </div>
         <div class="right">
-            Term:
+            <span class="title">Term</span>
             <select v-model="term" @change="changedTerm">
-                <option v-for="term in terms" v-text="term"></option>
+                <option v-for="term in terms" :value="term" v-text="term.slice(0,4) + ' ' + ({F: 'Fall', S: 'Spring', A: 'Summer I', B: 'Summer II'})[term.slice(-1)] + ' (' + term + ')'"></option>
             </select>
             <div v-if="courses.length">
-                Courses:
+                <span class="title">Courses</span>
                 <input v-model="search" placeholder="Search for a course...">
                 <select size="25" v-model="course" @keyup.delete="course = ''" @keyup.esc="course = ''">
                     <option v-for="c in searchedCourses" :value="c" v-text="c.section + ': ' + c.title"></option>
@@ -53,10 +53,12 @@
                 
                 <span v-if="course" class="hint">Press esc to cancel selection</span>
                 
-                <br><br> Total Credits: {{ totalCredits }}<br><br>
+                <br><br>
+                
+                <span class="title">Total Credits:</span> {{ totalCredits }}<br><br>
 
                 <div v-if="webclasses(selected.concat(course)).length">
-                    Web Classes
+                    <span class="title">Web Classes</span>
                     <div class="selectedList">
                         <div v-for="c in webclasses(selected.concat(course))" @dblClick="click(c)" :class="{selected: c != course }">
                             {{ c.section }}: {{ c.title }}<br> {{ c.instructor }}<br> {{ c.credits + ' credit' + (c.credits == 1 ? '' : 's') }} <br>{{ Math.max(0, (c.maxEnrollment - c.currentEnrollment)) + '/' + c.maxEnrollment }} seats open <br>{{ c.callNumber }}
