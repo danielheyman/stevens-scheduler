@@ -91,6 +91,9 @@
             <div v-if="selected.length" class="option floatRight" @click="clear">
                 New
             </div>
+            <div v-if="selected.length" class="option floatRight" @click="showExport = true">
+                Export
+            </div>
             <div v-if="currentstorage" class="option floatRight" @click="deleteSchedule">
                 Delete
             </div>
@@ -102,6 +105,14 @@
             </div>
             <div v-if="(justLoaded || changed) && selected.length" class="option floatRight" @click="save">
                 Save
+            </div>
+        </div>
+        <div class="export" name="export" v-if="showExport" @click="showExport = $event.target.attributes.name == undefined">
+            <div class="wrapper">
+                Share link:<br>
+                <input type="text" :value="'http://sitscheduler.com/' + getHash()"><br><br>
+                Course List:<br>
+                <textarea v-text="selected.map(function(c) { return c.callNumber + ': ' + c.section }).join('\n')"></textarea>
             </div>
         </div>
     </div>

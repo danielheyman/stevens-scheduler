@@ -16,7 +16,8 @@ var app = new Vue(
         search: "",
         closed: false,
         changed: false,
-        justLoaded: true
+        justLoaded: true,
+        showExport: false
     },
     mounted: function()
     {
@@ -86,6 +87,9 @@ var app = new Vue(
     },
     methods:
     {
+        getHash: function() {
+            return location.hash;
+        },
         save: function() {
             ga('send', 'event', 'schedule', 'save');
             

@@ -214,3 +214,34 @@ table .item.selected.hovering {
 #heeduser_wb:hover {
     background: #ccc;
 }
+
+.export {
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: rgba(0, 0, 0, .5);
+    height: 100%;
+    width: 100%;
+}
+
+.export .wrapper {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    margin-left: -200px;
+    margin-top: -150px;
+    width: 400px;
+    height: 300px;
+    border-radius: 5px;
+    background: #fff;
+    padding: 15px;
+}
+
+.export input {
+    width: 100%;
+}
+
+.export textarea {
+    height: 200px;
+    width: 100%;
+}
