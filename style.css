@@ -202,6 +202,15 @@ table .item.selected.hovering {
     font-weight: bold;
 }
 
+.recheck {
+    color: #636363;
+    cursor: pointer;
+}
+
+.recheck:hover {
+    text-decoration: underline;
+}
+
 #heeduser_wb:hover {
     background: #ccc;
 }

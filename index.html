@@ -29,7 +29,13 @@
                                     <div v-for="c in selected.concat(course)" @dblClick="click(c)" @mouseenter="hovering = c" @mouseleave="hovering = null" v-if="c && courseHere(day, hour, subhour, c)" 
                                         :class="{item: true, selected: c != course, hovering: hovering == c}" 
                                         :style="{height: hovering == c ? 'auto' : courseHere(day, hour, subhour, c).length * 100 + '%', minHeight: hovering != c ? 'auto' : courseHere(day, hour, subhour, c).length * 100 + '%'}">
-                                        {{ c.section }}<br> {{ c.title }}<br> {{ c.instructor }}<br> {{ courseHere(day, hour, subhour, c).loc }}<br> {{ c.credits + ' credit' + (c.credits == 1 ? '' : 's') }} <br>{{ Math.max(0, (c.maxEnrollment - c.currentEnrollment)) + '/' + c.maxEnrollment }} seats open<br> {{ c.callNumber }}<br>
+                                        {{ c.section }}<br> 
+                                        {{ c.title }}<br>
+                                        {{ c.instructor }}<br>
+                                        {{ courseHere(day, hour, subhour, c).loc }}<br>
+                                        {{ c.credits + ' credit' + (c.credits == 1 ? '' : 's') }}<br>
+                                        {{ Math.max(0, (c.maxEnrollment - c.currentEnrollment)) + '/' + c.maxEnrollment }} seats open<br>
+                                        {{ c.callNumber }}<br>
                                     </div>
                                 </div>                                
                             </div>
@@ -61,7 +67,11 @@
                     <span class="title">Web Classes</span>
                     <div class="selectedList">
                         <div v-for="c in webclasses(selected.concat(course))" @dblClick="click(c)" :class="{selected: c != course }">
-                            {{ c.section }}: {{ c.title }}<br> {{ c.instructor }}<br> {{ c.credits + ' credit' + (c.credits == 1 ? '' : 's') }} <br>{{ Math.max(0, (c.maxEnrollment - c.currentEnrollment)) + '/' + c.maxEnrollment }} seats open <br>{{ c.callNumber }}
+                            {{ c.section }}: {{ c.title }}<br> 
+                            {{ c.instructor }}<br> 
+                            {{ c.credits + ' credit' + (c.credits == 1 ? '' : 's') }}<br>
+                            {{ Math.max(0, (c.maxEnrollment - c.currentEnrollment)) + '/' + c.maxEnrollment }} seats open <br>
+                            {{ c.callNumber }}
                         </div>
                     </div>
                 </div>
@@ -70,7 +80,7 @@
             
             <br><br>
             
-            * Open seats can take a couple hours to update and are not in realtime
+            * Open seats can take up to two hours to update during peak registration hours
             
             <div id="feedback"></div>
         </div>
