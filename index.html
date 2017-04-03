@@ -68,9 +68,11 @@
             </div>
             <div v-else class="loadingCourses">Loading Courses...</div>
             
-            <div id="feedback">
-                
-            </div>
+            <br><br>
+            
+            * Open seats can take a couple hours to update and are not in realtime
+            
+            <div id="feedback"></div>
         </div>
         <div class="footer">
             <div v-if="localStorage" v-for="schedule in Object.keys(localStorage)" :class="{option: true, selected: currentstorage == schedule}" @click="load(schedule)">
