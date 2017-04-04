@@ -29,7 +29,6 @@ body {
 .footer {
     position: fixed;
     right: 300px;
-    height: 25px;
     bottom: 0;
     left: 0;
     background: #eee;
@@ -165,7 +164,7 @@ table .item.selected.hovering {
     line-height: 17px;
     padding: 0 5px;
     background: #aaa;
-    margin: 4px 5px;
+    margin: 4px 2px;
     border-radius: 5px;
     display: inline-block;
     cursor: pointer;
@@ -176,8 +175,9 @@ table .item.selected.hovering {
     background: rgba(47, 224, 82, .8);
 }
 
-.footer .option.floatRight {
+.footer .floatRight {
     float: right;
+    display: inline-block;
 }
 
 .hint {

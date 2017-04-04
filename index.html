@@ -92,24 +92,27 @@
             <div v-if="localStorage" v-for="schedule in Object.keys(localStorage)" :class="{option: true, selected: currentstorage == schedule}" @click="load(schedule)">
                 {{ schedule }}
             </div>
-            <div v-if="selected.length" class="option floatRight" @click="clear">
-                New
+            <div class="floatRight">
+                <div v-if="(justLoaded || changed) && selected.length" class="option" @click="save">
+                    Save
+                </div><!--
+                --><div v-if="changed && currentstorage && selected.length" class="option" @click="discard">
+                    Discard Changes
+                </div><!--
+                --><div v-if="currentstorage" class="option" @click="saveNew">
+                    Save as New
+                </div><!--
+                --><div v-if="currentstorage" class="option" @click="deleteSchedule">
+                    Delete
+                </div><!--
+                --><div v-if="selected.length" class="option" @click="showExport = true">
+                    Export
+                </div><!--
+                --><div v-if="selected.length" class="option" @click="clear">
+                    New
+                </div>
             </div>
-            <div v-if="selected.length" class="option floatRight" @click="showExport = true">
-                Export
-            </div>
-            <div v-if="currentstorage" class="option floatRight" @click="deleteSchedule">
-                Delete
-            </div>
-            <div v-if="currentstorage" class="option floatRight" @click="saveNew">
-                Save as New
-            </div>
-            <div v-if="changed && currentstorage && selected.length" class="option floatRight" @click="discard">
-                Discard Changes
-            </div>
-            <div v-if="(justLoaded || changed) && selected.length" class="option floatRight" @click="save">
-                Save
-            </div>
+            
         </div>
         <div class="export" name="export" v-if="showExport" @click="showExport = $event.target.attributes.name == undefined">
             <div class="wrapper">
