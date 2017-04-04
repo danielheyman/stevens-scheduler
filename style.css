@@ -38,7 +38,6 @@ body {
 .left {
     right: 300px;
     position: fixed;
-    overflow: hidden;
     top: 0;
     left: 0;
     overflow: auto;
@@ -78,6 +77,7 @@ table {
     border-collapse: collapse;
     min-height: 800px;
     min-width: 500px;
+    overflow: hidden;
 }
 
 table tbody td {
