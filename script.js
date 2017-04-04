@@ -22,7 +22,7 @@ var app = new Vue(
     mounted: function()
     {
         this.$el.style.display = 'block';
-        Vue.http.post('https://cors-anywhere.herokuapp.com/https://web.stevens.edu/scheduler/core/core.php?cmd=terms').then(function(res)
+        Vue.http.get('https://stevens-scheduler.us-1.evennode.com/terms').then(function(res)
         {
             var termsxml = parseXml(res.body).getElementsByTagName("Terms")[0].getElementsByTagName("Term");
             var terms = new Array(termsxml.length);
@@ -193,7 +193,7 @@ var app = new Vue(
             this.search = "";
             this.courses = [];
             this.selected = [];
-            Vue.http.get('https://cors-anywhere.herokuapp.com/https://web.stevens.edu/scheduler/core/core.php?cmd=getxml&term=' + this.term).then(function(res)
+            Vue.http.get('https://stevens-scheduler.us-1.evennode.com/' + this.term).then(function(res)
             {
                 var xml = parseXml(res.body).getElementsByTagName("Semester")[0].getElementsByTagName("Course");
                 var courses = new Array(xml.length);
