@@ -55,38 +55,21 @@ var app = new Vue(
                 return a + b;
             });
         },
-        searchedCourses: function()
-        {
-            var courses = this.courses.filter(function(course) {
-                return this.selected.indexOf(course) === -1;
-            }.bind(this));
-            if (!this.closed)
-            {
-                course = courses.filter(function(course)
-                {
-                    return course.open;
-                });
-            }
-            if (!this.search) return courses.sort(function(a, b)
-            {
-                return a.section > b.section ? 1 : -1;
-            });
-
-            var search = this.search.toLowerCase();
-            return courses.filter(function(course)
-            {
-                return course.section.toLowerCase().indexOf(search) > -1 ||
-                    course.title.toLowerCase().indexOf(search) > -1 ||
-                    course.instructor.toLowerCase().indexOf(search) > -1 ||
-                    course.callNumber.indexOf(search) > -1;
-            }).sort(function(a, b)
-            {
-                return a.section > b.section ? 1 : -1;
-            });
-        }
     },
     methods:
     {
+        filterSearch: function(course) {
+            if(this.selected.indexOf(course) !== -1) return false;
+            if (!this.closed && course.status != 'O') return false;
+
+            if(this.search) {
+                var search = this.search.toLowerCase();
+                return course.section.toLowerCase().indexOf(search) > -1 ||
+                    course.title.toLowerCase().indexOf(search) > -1 ||
+                    course.instructor.toLowerCase().indexOf(search) > -1;
+            }
+            return true;
+        },
         getHash: function() {
             return location.hash;
         },
