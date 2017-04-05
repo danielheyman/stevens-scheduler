@@ -44,6 +44,10 @@ var app = new Vue(
     },
     computed:
     {
+        printDescription: function() {
+            if(this.description) return this.description.description.replace("Prerequisites", "<br><br>Prerequisites").replace("Cross-listed", "<br><br>Cross-listed").replace("Corequisites", "<br><br>Corequisites");
+            return null;
+        },
         totalCredits: function()
         {
             return this.selected.map(function(course)

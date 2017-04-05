@@ -130,7 +130,7 @@
         <div class="description" name="description" v-if="description" @click="($event.target.attributes.name == undefined) ? null : description = null">
             <div class="wrapper">
                 <strong>Description for {{ description.section }}:</strong><br><br>
-                {{ description.description }}
+                <span v-html="printDescription"></span>
             </div>
         </div>
     </div>
