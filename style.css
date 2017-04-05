@@ -112,7 +112,7 @@ table .block .wrapper {
     left: 2px;
 }
 
-table .block .wrapper>div:not(:last-child) {
+table .block .wrapper>div {
     height: 25%;
     border-bottom: 1px dashed #ddd;
     width: 100%;

@@ -25,19 +25,21 @@
                         <td v-text="((hour - 1) % 12 + 1) + ':00'" class="time"></td>
                         <td v-for="day in ['M', 'T', 'W', 'R', 'F']" class="block">
                             <div class="wrapper">
-                                <div v-for="subhour in [0, 15, 30, 45]">
-                                    <div v-for="c in selected.concat(course)" @click="click(c)" @mouseenter="hovering = c" @mouseleave="hovering = null" v-if="c && courseHere(day, hour, subhour, c)" 
+                                <div>
+                                    <div v-for="c in selected.concat(course)" @click="click(c)" @mouseenter="hovering = c" @mouseleave="hovering = null" v-if="c && courseHere(day, hour, c)" 
                                         :class="{item: true, selected: c != course, hovering: hovering == c}" 
-                                        :style="{height: hovering == c ? 'auto' : courseHere(day, hour, subhour, c).length * 100 + '%', minHeight: hovering != c ? 'auto' : courseHere(day, hour, subhour, c).length * 100 + '%'}">
+                                        :style="{top: courseHere(day, hour, c).top * 100 + '%', height: hovering == c ? 'auto' : courseHere(day, hour, c).length * 100 + '%', minHeight: hovering != c ? 'auto' : courseHere(day, hour, c).length * 100 + '%'}">
                                         {{ c.section }}<br> 
                                         {{ c.title }}<br>
                                         {{ c.instructor }}<br>
-                                        {{ courseHere(day, hour, subhour, c).loc }}<br>
+                                        {{ courseHere(day, hour, c).loc }}<br>
                                         {{ c.credits + ' credit' + (c.credits == 1 ? '' : 's') }}<br>
                                         {{ Math.max(0, (c.maxEnrollment - c.currentEnrollment)) + '/' + c.maxEnrollment }} seats open<br>
                                         {{ c.callNumber }}<br>
                                     </div>
-                                </div>                                
+                                </div>
+                                <div></div>                               
+                                <div></div>                               
                             </div>
                         </td>
                     </tr>

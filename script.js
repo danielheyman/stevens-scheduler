@@ -216,7 +216,7 @@ var app = new Vue(
                 }
             }.bind(this), function(err) {});
         },
-        courseHere: function(day, hour, subhour, course)
+        courseHere: function(day, hour, course)
         {
             if (!course) return;
             var res = null;
@@ -226,8 +226,8 @@ var app = new Vue(
                 var start = this.convertTime(time.startTime);
                 var end = this.convertTime(time.endTime);
                 if (start[0] != hour) return;
-                if (start[1] != subhour) return;
                 res = {
+                    top: start[1] / 60,
                     length: ((end[0] + end[1] / 60) - (start[0] + start[1] / 60)),
                     loc: !time.building ? 'Room N/A' : time.building + ' ' + time.room
                 };
