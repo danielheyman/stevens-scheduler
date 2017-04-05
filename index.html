@@ -75,7 +75,8 @@
                             {{ c.instructor }}<br> 
                             {{ c.credits + ' credit' + (c.credits == 1 ? '' : 's') }}<br>
                             {{ Math.max(0, (c.maxEnrollment - c.currentEnrollment)) + '/' + c.maxEnrollment }} seats open <br>
-                            {{ c.callNumber }}
+                            {{ c.callNumber }}<br>
+                            <a v-if="c.description" class="link" @click="description = c">Description</a>
                         </div>
                     </div>
                 </div>
