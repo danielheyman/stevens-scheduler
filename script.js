@@ -173,7 +173,6 @@ var app = new Vue(
         {
             ga('send', 'event', 'term', 'change');
             this.currentstorage = null;
-            this.justLoaded = false;
             this.clear();
             this.course = null;
             this.search = "";
