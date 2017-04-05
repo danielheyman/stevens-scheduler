@@ -203,12 +203,12 @@ table .item.selected.hovering {
     font-weight: bold;
 }
 
-.recheck {
-    color: #636363;
+.link {
+    border-bottom: 1px solid grey;
     cursor: pointer;
 }
 
-.recheck:hover {
+.link:hover {
     text-decoration: underline;
 }
 
@@ -216,7 +216,7 @@ table .item.selected.hovering {
     background: #ccc;
 }
 
-.export {
+.export, .description {
     position: fixed;
     top: 0;
     left: 0;
@@ -225,7 +225,7 @@ table .item.selected.hovering {
     width: 100%;
 }
 
-.export .wrapper {
+.export .wrapper, .description .wrapper {
     position: fixed;
     left: 50%;
     top: 50%;
@@ -236,6 +236,12 @@ table .item.selected.hovering {
     border-radius: 5px;
     background: #fff;
     padding: 15px;
+}
+
+.export .wrapper, .description .wrapper {
+    top: 30px;
+    margin-top: 0;
+    height: auto;
 }
 
 .export input {

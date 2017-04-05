@@ -1,5 +1,8 @@
 Vue.use(VueResource);
 
+var server = function(h) { return 'http://54.71.50.103/p/' + h; };
+//var server = function(h) { return 'http://127.0.0.1:3000/p/' + h; };
+
 var app = new Vue(
 {
     el: '#app',
@@ -17,19 +20,15 @@ var app = new Vue(
         closed: false,
         changed: false,
         justLoaded: true,
-        showExport: false
+        showExport: false,
+        description: false
     },
     mounted: function()
     {
         this.$el.style.display = 'block';
-        Vue.http.get('http://54.71.50.103/terms').then(function(res)
+        Vue.http.get(server('terms')).then(function(res)
         {
-            var termsxml = parseXml(res.body).getElementsByTagName("Terms")[0].getElementsByTagName("Term");
-            var terms = new Array(termsxml.length);
-            for ( var i = 0; i < termsxml.length; i++) {
-                terms[i] = termsxml[i].getAttribute('Code');
-            }
-            this.terms = terms.reverse();
+            this.terms = res.body;
             if (this.hashExists() && (index = this.terms.indexOf(location.hash.slice(1, 6))) > -1)
             {
                 this.term = this.terms[index];
@@ -177,35 +176,9 @@ var app = new Vue(
             this.search = "";
             this.courses = [];
             this.selected = [];
-            Vue.http.get('http://54.71.50.103/' + this.term).then(function(res)
+            Vue.http.get(server(this.term)).then(function(res)
             {
-                var xml = parseXml(res.body).getElementsByTagName("Semester")[0].getElementsByTagName("Course");
-                var courses = new Array(xml.length);
-                for ( var i = 0; i < xml.length; i++) {
-                    courses[i] = {
-                        section: xml[i].getAttribute('Section'),
-                        title: xml[i].getAttribute('Title'),
-                        callNumber: xml[i].getAttribute('CallNumber'),
-                        credits: parseInt(xml[i].getAttribute('MinCredit')),
-                        maxEnrollment: xml[i].getAttribute('MaxEnrollment'),
-                        currentEnrollment: xml[i].getAttribute('CurrentEnrollment'),
-                        status: xml[i].getAttribute('Status'),
-                        instructor: xml[i].getAttribute('Instructor1'),
-                        daysTimeLocation: []
-                    };
-                    for( var j = 0; j < xml[i].getElementsByTagName('Meeting').length; j++) {
-                        courses[i].daysTimeLocation.push({
-                            day: xml[i].getElementsByTagName('Meeting')[j].getAttribute('Day'),
-                            startTime: xml[i].getElementsByTagName('Meeting')[j].getAttribute('StartTime'),
-                            endTime: xml[i].getElementsByTagName('Meeting')[j].getAttribute('EndTime'),
-                            site: xml[i].getElementsByTagName('Meeting')[j].getAttribute('Site'),
-                            building: xml[i].getElementsByTagName('Meeting')[j].getAttribute('Building'),
-                            room: xml[i].getElementsByTagName('Meeting')[j].getAttribute('Room'),
-                            activity: xml[i].getElementsByTagName('Meeting')[j].getAttribute('Activity')
-                        });
-                    }
-                }
-                this.courses = courses;
+                this.courses = res.body;
                 if (loadHash === true && this.hashExists())
                 {
                     var hashes = location.hash.slice(7).split(',');

@@ -27,7 +27,7 @@
                         <td v-for="day in ['M', 'T', 'W', 'R', 'F']" class="block">
                             <div class="wrapper">
                                 <div>
-                                    <div v-for="c in selected.concat(course)" @click="click(c)" @mouseenter="hovering = c" @mouseleave="hovering = null" v-if="c && courseHere(day, hour, c)" 
+                                    <div v-for="c in selected.concat(course)" @dblClick="click(c)" @mouseenter="hovering = c" @mouseleave="hovering = null" v-if="c && courseHere(day, hour, c)" 
                                         :class="{item: true, selected: c != course, hovering: hovering == c}" 
                                         :style="{top: courseHere(day, hour, c).top * 100 + '%', height: hovering == c ? 'auto' : courseHere(day, hour, c).length * 100 + '%', minHeight: hovering != c ? 'auto' : courseHere(day, hour, c).length * 100 + '%'}">
                                         {{ c.section }}<br> 
@@ -37,6 +37,7 @@
                                         {{ c.credits + ' credit' + (c.credits == 1 ? '' : 's') }}<br>
                                         {{ Math.max(0, (c.maxEnrollment - c.currentEnrollment)) + '/' + c.maxEnrollment }} seats open<br>
                                         {{ c.callNumber }}<br>
+                                        <a v-if="c.description" class="link" @click="description = c">Description</a>
                                     </div>
                                 </div>
                                 <div></div>                               
@@ -69,7 +70,7 @@
                 <div v-if="webclasses(selected.concat(course)).length">
                     <span class="title">Web Classes</span>
                     <div class="selectedList">
-                        <div v-for="c in webclasses(selected.concat(course))" @click="click(c)" :class="{selected: c != course }">
+                        <div v-for="c in webclasses(selected.concat(course))" @dblClick="click(c)" :class="{selected: c != course }">
                             {{ c.section }}: {{ c.title }}<br> 
                             {{ c.instructor }}<br> 
                             {{ c.credits + ' credit' + (c.credits == 1 ? '' : 's') }}<br>
@@ -123,6 +124,12 @@
                 <input type="text" :value="'http://sitscheduler.com/' + getHash()"><br><br>
                 Course List:<br>
                 <textarea v-text="selected.map(function(c) { return c.callNumber + ': ' + c.section }).join('\n')"></textarea>
+            </div>
+        </div>
+        <div class="description" name="description" v-if="description" @click="($event.target.attributes.name == undefined) ? null : description = null">
+            <div class="wrapper">
+                <strong>Description for {{ description.section }}:</strong><br><br>
+                {{ description.description }}
             </div>
         </div>
     </div>
