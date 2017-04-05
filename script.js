@@ -172,7 +172,7 @@ var app = new Vue(
         changedTerm: function(loadHash)
         {
             ga('send', 'event', 'term', 'change');
-            if(this.currentstorage) this.clear();
+            if(this.currentstorage && loadHash !== true) this.clear();
             this.course = null;
             this.search = "";
             this.courses = [];
