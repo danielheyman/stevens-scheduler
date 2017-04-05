@@ -26,7 +26,7 @@
                         <td v-for="day in ['M', 'T', 'W', 'R', 'F']" class="block">
                             <div class="wrapper">
                                 <div v-for="subhour in [0, 15, 30, 45]">
-                                    <div v-for="c in selected.concat(course)" @dblClick="click(c)" @mouseenter="hovering = c" @mouseleave="hovering = null" v-if="c && courseHere(day, hour, subhour, c)" 
+                                    <div v-for="c in selected.concat(course)" @click="click(c)" @mouseenter="hovering = c" @mouseleave="hovering = null" v-if="c && courseHere(day, hour, subhour, c)" 
                                         :class="{item: true, selected: c != course, hovering: hovering == c}" 
                                         :style="{height: hovering == c ? 'auto' : courseHere(day, hour, subhour, c).length * 100 + '%', minHeight: hovering != c ? 'auto' : courseHere(day, hour, subhour, c).length * 100 + '%'}">
                                         {{ c.section }}<br> 
@@ -66,7 +66,7 @@
                 <div v-if="webclasses(selected.concat(course)).length">
                     <span class="title">Web Classes</span>
                     <div class="selectedList">
-                        <div v-for="c in webclasses(selected.concat(course))" @dblClick="click(c)" :class="{selected: c != course }">
+                        <div v-for="c in webclasses(selected.concat(course))" @click="click(c)" :class="{selected: c != course }">
                             {{ c.section }}: {{ c.title }}<br> 
                             {{ c.instructor }}<br> 
                             {{ c.credits + ' credit' + (c.credits == 1 ? '' : 's') }}<br>
