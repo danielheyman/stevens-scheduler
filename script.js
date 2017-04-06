@@ -58,6 +58,15 @@ var app = new Vue(
     },
     methods:
     {
+        fetchDescription: function(course) {
+            if(!course.description) {
+                Vue.http.get(server('desc/' + course.section)).then(function(res)
+                {
+                    Vue.set(course, 'description', res.body);
+                }, function(err) {});
+            }
+            this.description = course;
+        },
         filterSearch: function(course) {
             if(this.selected.indexOf(course) !== -1) return false;
             if (!this.closed && course.status != 'O') return false;
@@ -196,7 +205,7 @@ var app = new Vue(
             var res = null;
             course.daysTimeLocation.forEach(function(time)
             {
-                if (!time.startTime || time.day.indexOf(day) === -1) return;
+                if (time.site == 'WS' || !time.startTime || time.day.indexOf(day) === -1) return;
                 var start = this.convertTime(time.startTime);
                 var end = this.convertTime(time.endTime);
                 if (start[0] != hour) return;
