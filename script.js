@@ -59,6 +59,8 @@ var app = new Vue(
     methods:
     {
         fetchDescription: function(course) {
+            ga('send', 'event', 'description', 'fetch');
+                
             if(!course.description) {
                 Vue.http.get(server('desc/' + course.section)).then(function(res)
                 {
