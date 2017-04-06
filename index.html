@@ -57,7 +57,7 @@
                 <span class="title">Courses</span>
                 <input v-model="search" placeholder="Search for a course...">
                 <select size="25" v-model="course" @keyup.delete="course = ''" @keyup.esc="course = ''">
-                    <option v-for="c in courses" v-if="filterSearch(c)" :value="c" v-text="c.section + ': ' + c.title"></option>
+                    <option v-for="c in courses" v-if="!safari || filterSearch(c)" v-show="filterSearch(c)" :value="c" v-text="c.section + ': ' + c.title"></option>
                 </select>
                 <input v-model="closed" type="checkbox"> Closed
                 

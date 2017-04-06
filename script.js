@@ -21,7 +21,8 @@ var app = new Vue(
         changed: false,
         justLoaded: true,
         showExport: false,
-        description: false
+        description: false,
+        safari: navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1
     },
     mounted: function()
     {
