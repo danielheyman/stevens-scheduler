@@ -248,40 +248,6 @@ var app = new Vue(
     }
 });
 
-function parseXml(xml)
-{
-    var dom = null;
-    if (window.DOMParser)
-    {
-        try
-        {
-            dom = (new DOMParser()).parseFromString(xml, "text/xml");
-        }
-        catch (e)
-        {
-            dom = null;
-        }
-    }
-    else if (window.ActiveXObject)
-    {
-        try
-        {
-            dom = new ActiveXObject('Microsoft.XMLDOM');
-            dom.async = false;
-            if (!dom.loadXML(xml)) // parse error ..
-
-                window.alert(dom.parseError.reason + dom.parseError.srcText);
-        }
-        catch (e)
-        {
-            dom = null;
-        }
-    }
-    else
-        alert("cannot parse xml string!");
-    return dom;
-}
-
 // Analytics
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
