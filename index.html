@@ -129,14 +129,16 @@
         </div>
         <div class="description" name="description" v-if="description" @click="($event.target.attributes.name == undefined) ? null : description = null">
             <div class="wrapper">
-                <strong>Description for {{ description.section }}:</strong><br><br>
-                <span v-html="printDescription"></span>
+                <strong>{{ description.section }}:</strong><br><br>
+                {{ description.description }}
+                <span v-if="description.prereqs" v-html="'<br><br>' + description.prereqs"></span>
+                <span v-if="description.coreqs" v-html="'<br><br>' + description.coreqs"></span>
             </div>
         </div>
     </div>
     <script src="https://unpkg.com/vue"></script>
     <script src="https://cdn.jsdelivr.net/vue.resource/1.2.1/vue-resource.min.js"></script>
-    <script src="./script.js?v=1.00" charset="utf-8"></script>
+    <script src="./script.js?v=1.01" charset="utf-8"></script>
 </body>
 
 </html>
