@@ -49,6 +49,7 @@
             </table>
         </div>
         <div class="right">
+            <img src="https://web.stevens.edu/scheduler/stevens-logo-100px.jpg" /><br><br>
             <span class="title">Term</span>
             <select v-model="term" @change="changedTerm">
                 <option v-for="term in terms" :value="term" v-text="term.slice(0,4) + ' ' + ({F: 'Fall', S: 'Spring', A: 'Summer I', B: 'Summer II'})[term.slice(-1)] + ' (' + term + ')'"></option>
@@ -89,9 +90,6 @@
             
             <div id="feedback"></div>
             
-            <br><br>
-            
-            If you like this, please endorse me on <a target="_blank" href="https://www.linkedin.com/in/heymand">LinkedIn</a>. 
         </div>
         <div class="footer">
             <div v-if="localStorage" v-for="schedule in Object.keys(localStorage)" :class="{option: true, selected: currentstorage == schedule}" @click="load(schedule)">
