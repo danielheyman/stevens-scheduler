@@ -274,7 +274,7 @@ ga('send', 'pageview');
 var _heeduser = {
 type: "button",
 community: "sitscheduler",
-url: "https://sitscheduler.heeduser.com",
+url: "http://sitscheduler.heeduser.com",
 placement: "middle-right",
 color: "#202021",
 widget_layout: "full",
