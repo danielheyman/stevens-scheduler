@@ -177,7 +177,7 @@ var app = new Vue(
         {
             return courses.filter(function(course)
             {
-                return course && course.daysTimeLocation[0].site == 'WS';
+                return course && (course.daysTimeLocation[0].site == 'WS' || course.daysTimeLocation[0].room == 'WEB');
             });
         },
         changedTerm: function(loadHash)
