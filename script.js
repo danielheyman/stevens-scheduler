@@ -1,6 +1,6 @@
 Vue.use(VueResource);
 
-var server = function(h) { return 'http://54.71.50.103/p/' + h; };
+var server = function(h) { return 'http://34.210.113.194/p/' + h; };
 //var server = function(h) { return 'http://127.0.0.1:3000/p/' + h; };
 
 var app = new Vue(
