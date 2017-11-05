@@ -221,8 +221,9 @@ var app = new Vue(
         },
         convertTime: function(time)
         {
-            res = time.slice(0, 5).split(":").map(Number);
-            res[0] += 4;
+            var res = time.slice(0, 5).split(":").map(Number);
+            var timezoneOffset = (new Date()).getTimezoneOffset() / 60;
+            res[0] += timezoneOffset;
             return res;
         },
         click: function(course)
