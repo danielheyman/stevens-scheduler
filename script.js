@@ -1,6 +1,6 @@
 Vue.use(VueResource);
 
-var server = function(h) { return 'http://35.162.126.115/p/' + h; };
+var server = function(h) { return 'https://stevens-scheduler.cfapps.io/p/' + h; };
 //var server = function(h) { return 'http://127.0.0.1:3000/p/' + h; };
 
 var app = new Vue(
