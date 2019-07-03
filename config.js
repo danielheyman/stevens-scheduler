@@ -534,10 +534,10 @@ Just go throuugh and fill everything out, most of it is
 self explanatory
 */
 
-app_config.collegeName = "Colorado State University";
-app_config.collegeNameShort = "CSU";
-app_config.siteTitle = "CSU Scheduler - Course Scheduler for Colorado State University";
-app_config.siteTitleShort = "CSU Scheduler";
+app_config.collegeName = "Stevens Institute of Technology";
+app_config.collegeNameShort = "SIT";
+app_config.siteTitle = "SIT Scheduler - Course Scheduler for Stevens Institute of Technology";
+app_config.siteTitleShort = "SIT Scheduler";
 
 // app_config.courseURLcodeName
 // For many colleges, when a student wants to register for a class they put in a number instead
@@ -553,7 +553,7 @@ app_config.courseURLcodeName = "CN";
 // This message will be shown at the bottom of the page when a user is locked out due to cors
 // It might be a good idea to fill in some details about who controls the web servers at your college
 // That way, if people start using your tool, you can get them to talk to whoever can make it open access
-app_config.CORScustom = "If you\'d like to use this tool without needing an extension, go bother Joe Rymski, Director of Web Communications, (Joe.Rymski@colostate.edu) you like this tool and want to see it used freeley.";
+app_config.CORScustom = "If you're seeing this message, everything's broken";
 
 // app_config.getLogoName()
 // Should return the file path/name of your college's logo, the one saved in this directory
@@ -561,7 +561,7 @@ app_config.CORScustom = "If you\'d like to use this tool without needing an exte
 // If you only have one logo, just return that file's name. If you want to have two, one for light
 // and one for dark mode, the isDarkMode parameter should be self explanatory
 app_config.getLogoName = function(isDarkMode){
-    return "CSU-Signature-Stacked-357-617" + (isDarkMode ? "-rev" : "") + ".svg";
+    return "Stevens-Official-" + (isDarkMode ? "WhiteKO" : "PMSColor") + "-R.svg";
 }
 
 // You should also go to index.html and do a few things

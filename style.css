@@ -56,6 +56,10 @@ body {
     position: fixed;
 }
 
+#logo{
+    padding: 10px 10px 0px 10px;
+}
+
 .right {
     padding: 10px;
     height: 100%;

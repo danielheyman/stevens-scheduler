@@ -44,7 +44,7 @@ app.generateHash = function(includeNotes) {
 // this is done be first checking if there's a saved schedule selected
 // then comparing the hash values of the two
 app.changed = function(){
-    if(!this.selected.length)
+    if(this.selected.length == 0)
 	return false;
     var saves = document.getElementById("saves").children; // first find if any saves are selected
     var ret = true;
