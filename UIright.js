@@ -242,8 +242,14 @@ app.hideSearch = function(referrer) {
 // hideSearch but for a single option
 app.filterSearch = function(course, search) {
     if(this.selected.indexOf(course) !== -1) return false;
-    if (!this.closed && (this.mode == "Manual" ? (course.seatsAvailable == 0) : course.home.alts.map(altPack => altPack.map(c => c.seatsAvailable == 0).reduce((acc, cur) => acc && cur, true)).reduce((acc, cur) => acc || cur, false))) return false;
-    
+    if (!this.closed && (this.mode == "Manual" ? (course.seatsAvailable <= 0) : // if auto, check if it's possible to load in a full configuration
+			 course.home.alts // grab alts -> [type:[c, c, c], type:[c, c, c]]
+			 .map(altPack => altPack.map(c => c.seatsAvailable == 0) // make alts into a closed field, value = closed -> [type:[true, false, false], type:[true, true, true]]
+			      .map(altPack => altPack.map(c => c.seatsAvailable <= 0) // make alts into a closed field, value = closed -> [type:[true, false, false], type:[true, true, true]]
+				   .reduce((acc, cur) => acc && cur, true)) // then pack each alt into "is every course closed = true" -> [type:[false], type:[true]]
+			      .reduce((acc, cur) => acc || cur, false)) // then see if there's one alt type that has all sections closed - if so we know there's no way we can have a valid sched w/ this course
+			)) return false;
+	
     if(search && !(
 	(course.subject + ' ' + course.courseNumber).toLowerCase().indexOf(search) > -1 ||
 	    course.title.toLowerCase().indexOf(search) > -1 ||

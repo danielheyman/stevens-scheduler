@@ -96,9 +96,9 @@ app.fillSchedule = function(referrer) {
 		var div = document.createElement("div");
 		div.className = "item";
 		var innerText = course.subject + ' ' + course.courseNumber + '\n' + course.title.replace(/&ndash;/g, "–") + '\n' + course.faculty + '\n' + courseHere.loc + '\n' + course.credits + ' credit' + (course.credits !=1 ? 's' : '') + '\n';
-		if(course.seatsAvailable && course.maximumEnrollment)
+		if((course.seatsAvailable !== undefined) && (course.maximumEnrollment !== undefined))
 		    innerText += Math.max(0, course.seatsAvailable) + '/' + course.maximumEnrollment + ' seats open\n';
-		if(course.waitAvailable && course.waitAvailable > 0)
+		if((course.waitAvailable !== undefined) && (course.waitAvailable !== undefined))
 		    innerText += course.waitAvailable + '/' + course.waitCapacity + ' waitlist open\n';
 		innerText += app_config.courseURLcodeName + ': ' + course.callNumber + '\n';
 		div.innerText = innerText; // need to assign all at once so newlines work properly
@@ -137,9 +137,9 @@ app.fillSchedule = function(referrer) {
 	    var div = document.createElement("div");
 	    div.className = "item";
 	    var innerText = course.subject + ' ' + course.courseNumber + '\n' + course.title.replace(/&ndash;/g, "–") + '\n' + course.faculty + '\n' + course.credits + ' credit' + (course.credits !=1 ? 's' : '') + '\n';
-	    if(course.seatsAvailable && course.maximumEnrollment)
+	    if((course.seatsAvailable !== undefined) && (course.maximumEnrollment !== undefined))
 		innerText += Math.max(0, course.seatsAvailable) + '/' + course.maximumEnrollment + ' seats open\n';
-	    if(course.waitAvailable && course.waitAvailable > 0)
+	    if((course.waitAvailable !== undefined) && (course.waitAvailable !== undefined))
 		innerText += course.waitAvailable + '/' + course.waitCapacity + ' waitlist open\n';
 	    innerText += app_config.courseURLcodeName + ': ' + course.callNumber + '\n';
 	    div.innerText = innerText; // need to assign all at once so newlines work properly
@@ -208,7 +208,7 @@ app.fillSchedule = function(referrer) {
     this.updateCredits();
 
     //Deal with the "you can deselect" thing
-    document.getElementById("escTip").style.display = this.course != null && (this.closed || app.courses[this.course].seatsAvailable) ? "" : "none";
+    document.getElementById("escTip").style.display = (this.course != null) ? "" : "none";
 
     localStorage.setItem('lastViewed', this.generateHash(false));
 };
