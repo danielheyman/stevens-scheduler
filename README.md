@@ -1,5 +1,6 @@
-# csu-scheduler
-Course Scheduler for Colorado State University. Create, save, edit, and view all your schedules in one simple page.
-Based off of [stevens-scheduler](https://github.com/danielheyman/stevens-scheduler) but with a lot more features, including automatic mode.
+# stevens-scheduler
+Course Scheduler for Stevens Institute of Technology. Create, save, edit, and view all your schedules in one simple page.
 
-Currently in Beta.
+Now with more features, including **dark theme**, **automatic schedule creation**, **notes** that can be saved alongside schedules, **rearrangeable saves**, and a a lot more.
+
+Upgraded version based off of [csu-scheduler](https://github.com/Shizcow/csu-scheduler).
