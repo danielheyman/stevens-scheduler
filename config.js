@@ -373,6 +373,9 @@ app_config.PROCESSgetCourseTotalCount = function(responseText){
 -subject: if the course is MATH 101, this value should be "MATH"
 
 and if available:
+-sessionMod: some colleges like to specify sessions in course number
+             this value captures that session data, like: "MATH 245A" -> "A"
+                                                          "PSY 525RA" -> "RA"
 -maximumEnrollment: if there are 25/100 seats available (75 taken), this value should be "100"
 -seatsAvailable: if there are 25/100 seats available (75 taken), this value should be "25"
 -waitAvailable: same as above but on a waitlist

@@ -160,7 +160,7 @@ app.genDivs = function(loadSelect = true){
     for(var i = 0; i < app.courses.length; i++){
 	var c = app.courses[i];
 	var el = document.createElement("option");
-	el.textContent = c.subject + ' ' + c.courseNumber + c.sessionMod + ': ' + c.title;
+	el.textContent = c.subject + ' ' + c.courseNumber + (c.sessionMod ? c.sessionMod : "") + ': ' + c.title;
 	el.value = c.index;
 	app.courses_manual.push(el);
     }
