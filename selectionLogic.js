@@ -98,11 +98,7 @@ app.autoConstruct = function(courses){
     if(courses.slice(-1)[0] === undefined) // remove empty at end when no class is selected
 	courses.pop();
     if(this.mode == "Manual"){
-<<<<<<< HEAD
 	courses = this.closed ? courses : courses.filter(course => course.seatsAvailable > 0);
-=======
-    courses = courses.filter(course => course.seatsAvailable || this.closed);
->>>>>>> 95c4262cc5e1157f9be5f7946ea08e6a12d8522c
 	if("M"+courses.map(course => course.URLcode).join() == this.savedCourseGenerator)
 	    return app.courses_generator; // don't have to run the calculation for every hour in every day
 	if(this.savedCourseGenerator[0] == "A" && this.course != null){ // switching from automatic to manual - update app.course
@@ -139,11 +135,7 @@ app.autoConstruct = function(courses){
 		    typePack = typePack.filter(c => c!=compareCourse); // remove course
 		    typePack.unshift(compareCourse); // then re-add it to front
 		}	
-<<<<<<< HEAD
 	    });
-=======
-	    })
->>>>>>> 95c4262cc5e1157f9be5f7946ea08e6a12d8522c
 	    acc.push(app.closed ? typePack : typePack.filter(c => c.seatsAvailable > 0)); // filter out courses that are closed
 	});
 	return acc;
@@ -172,11 +164,7 @@ app.removeDuplicatesBy = function(keyFn, array) {
 app.cartesianProduct = function*(dimensions){
     if(dimensions.map(dimension => dimension.length == 0).reduce((acc, cur) => (acc || cur), false))
 	return; // there's an empty dimension - this means all the courses in it are closed
-<<<<<<< HEAD
     if(dimensions.length <= 1){ // no need to calculate for 1 length lists (0 neither) - just yield each schedule
-=======
-    if(dimensions.length <= 1){// no need to calculate for 1 length lists (0 neither) - just yield each schedule
->>>>>>> 95c4262cc5e1157f9be5f7946ea08e6a12d8522c
 	for(var i = 0; i<dimensions[0].length; ++i)
 	    yield [dimensions[0][i]]; // wrap each course as its own schedule
 	return; // generators are weird
