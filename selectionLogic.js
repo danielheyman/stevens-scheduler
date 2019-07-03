@@ -97,8 +97,8 @@ app.autoConstruct = function(courses){
     if(courses[0] === undefined) return {get: function(i){return []}}; // no courses - go no further
     if(courses.slice(-1)[0] === undefined) // remove empty at end when no class is selected
 	courses.pop();
-    courses = courses.filter(course => course.seatsAvailable || this.closed);
     if(this.mode == "Manual"){
+	courses = this.closed ? courses : courses.filter(course => course.seatsAvailable > 0);
 	if("M"+courses.map(course => course.URLcode).join() == this.savedCourseGenerator)
 	    return app.courses_generator; // don't have to run the calculation for every hour in every day
 	if(this.savedCourseGenerator[0] == "A" && this.course != null){ // switching from automatic to manual - update app.course
@@ -135,13 +135,11 @@ app.autoConstruct = function(courses){
 		    typePack = typePack.filter(c => c!=compareCourse); // remove course
 		    typePack.unshift(compareCourse); // then re-add it to front
 		}	
-	    })
-	    acc.push(typePack);
+	    });
+	    acc.push(app.closed ? typePack : typePack.filter(c => c.seatsAvailable > 0)); // filter out courses that are closed
 	});
 	return acc;
-    }, []))).filter(function(schedule){
-	return schedule.reduce((acc, course) => acc && ((course.seatsAvailable > 0) || app.closed), true);
-    }).filter(this.schedCompat);
+    }, []))).filter(this.schedCompat);
     this.savedCourseGenerator = "A"+this.removeDuplicatesBy(course => course.home, courses).map(el => el.home.URLcode).filter(c => c).join() + (this.closed ? "C" : "");
     return app.courses_generator;
 };
@@ -164,7 +162,9 @@ app.removeDuplicatesBy = function(keyFn, array) {
 // Example: [['a', 'b'], ['c', 'd']] => [['a', 'c'], ['a', 'd'], ['b', 'c'], ['b', 'd']]
 // go read the wikipedia article on cartesian products for more info
 app.cartesianProduct = function*(dimensions){
-    if(dimensions.length <= 1){// no need to calculate for 1 length lists (0 neither) - just yield each schedule
+    if(dimensions.map(dimension => dimension.length == 0).reduce((acc, cur) => (acc || cur), false))
+	return; // there's an empty dimension - this means all the courses in it are closed
+    if(dimensions.length <= 1){ // no need to calculate for 1 length lists (0 neither) - just yield each schedule
 	for(var i = 0; i<dimensions[0].length; ++i)
 	    yield [dimensions[0][i]]; // wrap each course as its own schedule
 	return; // generators are weird

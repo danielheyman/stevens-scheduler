@@ -286,5 +286,5 @@ app.clear = function(bypass = false) {
 app.showExport = function(){
     document.getElementById("export").style.display = "";
     document.getElementById("export-link").value = location.href;
-    document.getElementById("export-text").value = this.selected.map(function(c) { return c.URLcode + ': ' + c.subject + ' ' + c.courseNumber }).join('\n');
+    document.getElementById("export-text").value = this.selected.map(function(c) { return c.courseRegistrationCode + ': ' + c.subject + ' ' + c.courseNumber }).join('\n');
 };

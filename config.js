@@ -357,6 +357,10 @@ app_config.PROCESSgetCourseTotalCount = function(responseText){
 /*
 -courseNumber: if the course is MATH 101, this value should be "101"
 -URLcode: the URL code used to get the course description, passed to app_config.URLgetDescription()
+-courseRegistrationCode: the code the user inputs into your college's official registration page
+                         this value will be displayed to the user so they can register quickly
+			 Common names are "call number" or "course reference number"
+                         This name will be filled out as app_config.courseRegistrationCodeName later
 -title: if the course is MATH 101, this value should be "Introduction to College Algebra"
 -credits: integer representation of a course's credit hours
 -faculty: string of faculty, such as "Jon Doe, Mike Smith, and Sarah Williams"
@@ -448,7 +452,7 @@ app_config.PROCESSgetCourses = function(responseText){
 	ret_course.sessionMod = courseJSON.section.match(/[a-zA-Z]+/g)[1];
 	
 	ret_course.URLcode = courseJSON.section;
-	ret_course.callNumber = courseJSON.callNumber;
+	ret_course.courseRegistrationCode = courseJSON.callNumber;
 	ret_course.title = courseJSON.title;
 	
 	ret_course.credits = courseJSON.credits;
@@ -547,7 +551,7 @@ app_config.siteTitleShort = "SIT Scheduler";
 // This varible holds an abreviated (~3-4 char) name for that value that the user will understand
 //
 // For example, at CSU, this value is called the Course Reference Number, and is abreviated as CRN
-app_config.courseURLcodeName = "CN";
+app_config.courseRegistrationCodeName = "CN";
 
 // This is important when developing, go read up on CORS
 // This message will be shown at the bottom of the page when a user is locked out due to cors
