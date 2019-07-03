@@ -223,7 +223,7 @@ app.fillSchedule = function(referrer) {
 onhashchange = function(){
     //first, check if we need to load
     //IE, if hash agrees with loaded schedule
-    if(!(app.generateHash(false) == location.hash.substr(1).split("%20").join(" "))){
+    if(!(app.generateHash(false) == location.hash.substr(1).split("%20").join(" ")) && location.hash.substr(1).split("=")[0].length){
 	//first change term
 	app.term = app.terms[app.terms.map(el => el.URLcode).indexOf(location.hash.split("=")[0].substr(1))].URLcode;
 	//then load selected & render on screen

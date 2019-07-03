@@ -206,6 +206,8 @@ app.updateNotes = function(noteBox){
 
 // fills in the course selection box according to mode and search query
 app.fillSearch = function(referrer) {
+    if(referrer)
+	app.savedCourseGenerator = "";
     var selectBox = document.getElementById("selectBox");
     var val = selectBox.value;
     while(selectBox.lastChild.value != "")
