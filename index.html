@@ -1,142 +1,196 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <!-- Global site tag (gtag.js) - Google Analytics: -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-142471442-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
 
-<head>
+      gtag('config', 'UA-142471442-2');
+    </script>
+    <!--
+	NOTE:
+	In addition to page views, for events are updated in script.js:
+	1) Schedules Saved
+	2) Schedules Created
+	3) Schedules Shared
+	4) Schedules Tested
+      -->
+    <!-- End GA -->
     <meta charset="utf-8">
     <meta name="description" content="Course Scheduler for Stevens Institute of Technology. Create, save, share, and export all your schedule combinations.">
-    <link rel="stylesheet" href="./style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="style.css?v=0.6.1">
+    <link rel="stylesheet" href="style_dark.css?v=0.6.1">
+  </head>
+  <body>
     <div id="loading">
-        Loading Pure Awesomeness...
+      Loading Pure Awesomeness...
     </div>
-        
-    <div id="app">
-        <div class="left">
-            <table>
-                <thead>
-                    <tr>
-                        <td class="time"></td>
-                        <td v-for="day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']" v-text="day"></td>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="hour in [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]">
-                        <td v-text="((hour - 1) % 12 + 1) + ':00'" class="time"></td>
-                        <td v-for="day in ['M', 'T', 'W', 'R', 'F']" class="block">
-                            <div class="wrapper">
-                                <div>
-                                    <div v-for="c in selected.concat(course)" @dblClick="click(c)" @mouseenter="hovering = c" @mouseleave="hovering = null" v-if="c && courseHere(day, hour, c)" 
-                                        :class="{item: true, selected: c != course, hovering: hovering == c}" 
-                                        :style="{top: courseHere(day, hour, c).top * 100 + '%', height: hovering == c ? 'auto' : courseHere(day, hour, c).length * 100 + '%', minHeight: hovering != c ? 'auto' : courseHere(day, hour, c).length * 100 + '%'}">
-                                        {{ c.section }}<br> 
-                                        {{ c.title }}<br>
-                                        {{ c.instructor }}<br>
-                                        {{ courseHere(day, hour, c).loc }}<br>
-                                        {{ c.credits + ' credit' + (c.credits == 1 ? '' : 's') }}<br>
-                                        {{ Math.max(0, (c.maxEnrollment - c.currentEnrollment)) + '/' + c.maxEnrollment }} seats open<br>
-                                        {{ c.callNumber }}<br>
-                                        <a class="link" @click="fetchDescription(c)">Description <span v-if="c.prereqs">(P)</span> <span v-if="c.coreqs">(C)</span></a>
-                                    </div>
-                                </div>
-                                <div></div>                               
-                                <div></div>                               
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="right">
-            <img src="https://web.stevens.edu/scheduler/stevens-logo-100px.jpg" /><br><br>
-            <span class="title">Term</span>
-            <select v-model="term" @change="changedTerm">
-                <option v-for="term in terms" :value="term" v-text="term.slice(0,4) + ' ' + ({F: 'Fall', S: 'Spring', A: 'Summer I', B: 'Summer II'})[term.slice(-1)] + ' (' + term + ')'"></option>
-            </select>
-            <div v-if="courses.length">
-                <span class="title">Courses</span>
-                <input v-model="search" placeholder="Search for a course...">
-                <select size="25" v-model="course" @keyup.delete="course = ''" @keyup.esc="course = ''">
-                    <option v-for="c in courses" v-if="!safari || filterSearch(c)" v-show="filterSearch(c)" :value="c" v-text="c.section + ': ' + c.title"></option>
-                </select>
-                <input v-model="closed" type="checkbox"> Closed
-                
-                <span v-if="course" class="hint">Press esc to cancel selection</span>
-                
-                <br><br>
-                
-                <span class="title">Total Credits:</span> {{ totalCredits }}<br><br>
+    
+    <div id="cors" style="display:none;">
+      <!-- message is set in index.js -->
+    </div>
 
-                <div v-if="webclasses(selected.concat(course)).length">
-                    <span class="title">Web Classes</span>
-                    <div class="selectedList">
-                        <div v-for="c in webclasses(selected.concat(course))" @dblClick="click(c)" :class="{selected: c != course }">
-                            {{ c.section }}: {{ c.title }}<br> 
-                            {{ c.instructor }}<br> 
-                            {{ c.credits + ' credit' + (c.credits == 1 ? '' : 's') }}<br>
-                            {{ Math.max(0, (c.maxEnrollment - c.currentEnrollment)) + '/' + c.maxEnrollment }} seats open <br>
-                            {{ c.callNumber }}<br>
-                            <a class="link" @click="fetchDescription(c)">Description <span v-if="c.prereqs">(P)</span> <span v-if="c.coreqs">(C)</span></a>
-                        </div>
+    <div id="main" style="display:none;">
+      <div class="left">
+	<div id="noSchedWrapper" style="display:none;">
+	  <div id="noSchedAlign">
+	    <div id="noSched">
+	      <span>No schedules available without conflict.</span>
+	      <br>
+	      <span>Press Esc to de-select course, or enter Manual Mode</span>
+	    </div>
+	  </div>
+	</div>
+	<table id="weekTable">
+          <thead>
+            <tr id="schedThead">
+              <td class="time">
+		<label id="switch">
+		  <input onclick="change_style(this);" type="checkbox" id="styleSlider">
+		  <span class="slider round"></span>
+		</label>
+	      </td>
+	      <!--
+		  <td for="day in daylist(false)" text="day"></td>
+		  -->
+            </tr>
+          </thead>
+          <tbody id="schedTbody">
+	    <!--
+		<tr for="hour in [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]">
+		  <td text="((hour - 1) % 12 + 1) + ':00'" class="time"></td>
+		  <td for="day in daylist(true)" class="block">
+                    <div class="wrapper">
+                      <div class="wrapperInternal" data-hour="hour" data-day="day">
+                      </div>
+                      <div></div>                               
+                      <div></div>                               
                     </div>
-                </div>
-            </div>
-            <div v-else class="loadingCourses">Loading Courses...</div>
+		  </td>
+		</tr>
+		-->
+          </tbody>
+	</table>
+      </div>
+
+      <div class="rightWrapper">
+	<img id="logo" style="width:100%"/> <!-- src is set in config.js -->
+	<div class="right">
+	  <span class="title">Mode</span>
+	  <br>
+	  <input id="Manual" name="mode" type="radio" value="Manual" onchange="app.fillSearch(this); app.autoConstruct(app.selected.concat(app.courses[app.course])).get(0); app.fillSchedule();" checked="checked"> Manual
+	  <br>
+	  <input id="Automatic" name="mode" type="radio" value="Automatic" onchange="app.fillSearch(this); app.autoConstruct(app.selected.concat(app.courses[app.course])).get(0); app.fillSchedule();"> Automatic
+	  <br>
+	  <div id="autoBar" style="display:none;" style="width: 100%;">
+	    <input id="Range" oninput="app.fillSchedule(this);" type="range" min="0" max="0" style="width: 66%;">
+	    <button id="nextButton" style="width: 30%;float: right;"></button>
+	  </div>
+	  <br>
+	  <span class="title">Term</span>
+	  <select onchange="app.changedTerm(false, this)" id="termSelect">
+	    <option value="" selected hidden disabled></option>
+	    <!--
+		<option for="term in terms" value="term" text="term.title"></option>
+		-->
+	  </select>
+	  <div id="coursesBox" style="display:none;">
+            <span class="title">Courses</span>
+            <input id="searchBox" oninput="app.hideSearch()" placeholder="Search for a course..." style="width: 100%;">
+            <select id="selectBox" onchange="app.fillSchedule()" size="25">
+	      <option value="" selected disabled hidden>default</option>
+	      <!-- options are filled in automatically -->
+            </select>
+            <input id="closedCheck" onclick="app.hideSearch(this); app.fillSchedule(this)" type="checkbox"> Closed
+            <br>
+            <span id="escTip" class="hint">*Press esc to cancel selection</span>
             
             <br><br>
-            
-            * Open seats can take up to two hours to update during peak registration hours
-            
-            <div id="feedback"></div>
-            
-        </div>
-        <div class="footer">
-            <div v-if="localStorage" v-for="schedule in Object.keys(localStorage)" :class="{option: true, selected: currentstorage == schedule}" @click="load(schedule)">
-                {{ schedule }}
-            </div>
-            <div class="floatRight">
-                <div v-if="(justLoaded || changed) && selected.length" class="option" @click="save">
-                    Save
-                </div><!--
-                --><div v-if="changed && currentstorage && selected.length" class="option" @click="discard">
-                    Discard Changes
-                </div><!--
-                --><div v-if="currentstorage" class="option" @click="saveNew">
-                    Save as New
-                </div><!--
-                --><div v-if="currentstorage" class="option" @click="deleteSchedule">
-                    Delete
-                </div><!--
-                --><div v-if="selected.length" class="option" @click="showExport = true">
-                    Export
-                </div><!--
-                --><div v-if="selected.length" class="option" @click="clear">
-                    New
-                </div>
-            </div>
-            
-        </div>
-        <div class="export" name="export" v-if="showExport" @click="showExport = $event.target.attributes.name == undefined">
-            <div class="wrapper">
-                Share link:<br>
-                <input type="text" :value="'http://sitscheduler.com/' + getHash()"><br><br>
-                Course List:<br>
-                <textarea v-text="selected.map(function(c) { return c.callNumber + ': ' + c.section }).join('\n')"></textarea>
-            </div>
-        </div>
-        <div class="description" name="description" v-if="description" @click="($event.target.attributes.name == undefined) ? null : description = null">
-            <div class="wrapper">
-                <strong>{{ description.section }}:</strong><br><br>
-                <span v-if="!description.description">Fetching description...</span>
-                <span v-else>{{ description.description }}</span>
-                <span v-if="description.prereqs" v-html="'<br><br>' + description.prereqs"></span>
-                <span v-if="description.coreqs" v-html="'<br><br>' + description.coreqs"></span>
-            </div>
-        </div>
+
+	    <div>
+              <span class="title">Total Credits:</span>
+	      <span id="credits"></span><br><br>
+	    </div>
+
+	    
+            <span class="title">Notes:</span>
+	    <textarea id="notes" onkeyup="app.updateNotes(this);"></textarea>
+	    
+            <div id="webWrapper" style="display:none;">
+              <span class="title">Web Classes</span>
+              <div class="selectedList" id="web">
+		<!-- autofilled in fillSchedule
+		     <div for="c in webclasses(selected.concat(courses[course]))" @dblClick="click(c)" :class="{selected: c != courses[course] }">
+		       {data...}
+		     </div>
+		     -->
+	      </div>
+	    </div>
+	  </div>
+	  <div id="loadingCourses"></div>
+
+	  <br><br>
+
+	  * Open seats can take up to two hours to update during peak registration hours
+	</div>
+      </div>
+
+      <div class="footer">
+	<div id="saves">
+	</div>
+	<div class="floatRight">
+	  <div id="marker-save" class="option" style="display:none;" onclick="app.save();">
+	    Save
+	  </div>
+	  <div id="marker-discard" class="option " style="display:none;" onclick="app.discard();">
+	    Discard Changes
+	  </div>
+	  <div id="marker-saveAsNew" class="option " style="display:none;" onclick="app.saveNew();">
+	    Save as New
+	  </div>
+	  <div id="marker-delete" class="option " style="display:none;" onclick="app.deleteSchedule();">
+	    Delete
+	  </div>
+	  <div id="marker-export" class="option " style="display:none;" onclick="app.showExport();">
+	    Export
+	  </div>
+	  <div id="marker-new" class="option " style="display:none;" onclick="app.clear();">
+	    New
+	  </div>
+	</div>
+      </div>
+      
+      <div id="export" class="export " style="display:none;" name="export" onclick="if(window.event.target === this){this.style.display = 'none';}">
+	<div class="wrapper">
+	  Share link:<br>
+	  <input type="text" id="export-link"><br><br>
+	  Course List:<br>
+	  <textarea id="export-text"></textarea>
+	</div>
+      </div>
+      
+      <div id="description" class="description " style="display:none;" name="description" onclick="if(window.event.target === this){this.style.display = 'none';}">
+	<div class="wrapper">
+	  <strong id="description-strong"></strong><br><br>
+	  <span id="description-fetch">Fetching description...</span>
+	  <span id="description-show" style="white-space: pre-wrap;"></span>
+	</div>
+      </div>
     </div>
-    <script src="https://unpkg.com/vue"></script>
-    <script src="https://cdn.jsdelivr.net/vue.resource/1.2.1/vue-resource.min.js"></script>
-    <script src="./script.js?v=1.07" charset="utf-8"></script>
-</body>
+    <!-- SCRIPTS -->
+    <script type="text/javascript" src="./config.js?v=0.6.1" charset="utf-8"></script>
+    <script type="text/javascript" src="./index.js?v=0.6.1" charset="utf-8"></script>
+    <script type="text/javascript" src="./librequests.js?v=0.6.1" charset="utf-8"></script>
+    <script type="text/javascript" src="./init.js?v=0.6.1" charset="utf-8"></script>
+    <script type="text/javascript" src="./apputil.js?v=0.6.1" charset="utf-8"></script>
+    <script type="text/javascript" src="./UIschedule.js?v=0.6.1" charset="utf-8"></script>
+    <script type="text/javascript" src="./UIright.js?v=0.6.1" charset="utf-8"></script>
+    <script type="text/javascript" src="./UIsavebar.js?v=0.6.1" charset="utf-8"></script>
+    <script type="text/javascript" src="./selectionLogic.js?v=0.6.1" charset="utf-8"></script>
+    <script type="text/javascript" src="./mounted.js?v=0.6.1" charset="utf-8"></script>
+  </body>
 
 </html>

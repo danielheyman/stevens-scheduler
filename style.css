@@ -1,3 +1,7 @@
+/* style.css
+This file contains all styles needed for the site to function
+This file also contains colors for light mode, which are overritten by style_dark.css
+*/
 body {
     font-family: Arial, Helvetica, sans-serif;
     font-size: 14px;
@@ -16,14 +20,11 @@ body {
     color: #333;
 }
 
-#app {
-    display: none;
-    background: #fff;
+#notes {
     width: 100%;
-    height: 100%;
-    position: fixed;
-    top: 0;
-    left: 0;
+    resize: none;
+    overflow: hidden;
+    min-height: 50px;
 }
 
 .footer {
@@ -45,14 +46,20 @@ body {
     bottom: 25px;
 }
 
-.right {
-    padding: 10px;
-    position: fixed;
+.rightWrapper {
+    border-left: 1px solid gray;
+    overflow: hidden;
+    height: 100%;
+    width: 300px;
     right: 0;
     top: 0;
-    width: 300px;
+    position: fixed;
+}
+
+.right {
+    padding: 10px;
     height: 100%;
-    border-left: 1px solid gray;
+    width: 100%;
     overflow: auto;
 }
 
@@ -63,7 +70,7 @@ body {
     margin-top: 5px;
 }
 
-.right input:not([type=checkbox]) {
+.searchbar {
     width: 100%;
     margin-top: 5px;
 }
@@ -181,6 +188,11 @@ table .item.selected.hovering {
     display: inline-block;
 }
 
+#saves {
+    float: left;
+    position: relative;
+}
+
 .hint {
     float: right;
     font-size: 11px;
@@ -251,4 +263,77 @@ table .item.selected.hovering {
 .export textarea {
     height: 200px;
     width: 100%;
+}
+
+#noSchedWrapper{
+    padding-left: 50px;
+    padding-top: 25px;
+    height: 100%;
+    width: 100%;
+}
+
+#noSchedAlign{
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#noSched{
+    width: 400px;
+    text-align: center;
+}
+
+#switch {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+}
+
+#switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #aaa;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  top: 2px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #333;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #333;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(30px);
+  -ms-transform: translateX(30px);
+  transform: translateX(30px);
 }
