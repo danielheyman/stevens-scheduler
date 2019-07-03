@@ -223,7 +223,7 @@ app.fillSchedule = function(referrer) {
 onhashchange = function(){
     //first, check if we need to load
     //IE, if hash agrees with loaded schedule
-    if(!(app.generateHash(false) == location.hash.substr(1))){
+    if(!(app.generateHash(false) == location.hash.substr(1).split("%20").join(" "))){
 	//first change term
 	app.term = app.terms[app.terms.map(el => el.URLcode).indexOf(location.hash.split("=")[0].substr(1))].URLcode;
 	//then load selected & render on screen
@@ -387,7 +387,7 @@ app.dayUpdate = function(){
 
 // used to load in a schedule from either a save or a shared URL
 app.loadHash = function(first){
-    var hashes = location.hash.split("=")[1].split("&")[0].split(",");
+    var hashes = location.hash.split("%20").join(" ").split("=")[1].split("&")[0].split(",");
     this.selected = app.courses.filter(function(course){
 	return hashes.indexOf(course.URLcode.toString()) > -1;
     });
@@ -397,7 +397,7 @@ app.loadHash = function(first){
 	// this will choose the firstmost schedule that matches
 	var possible = [];
 	for(var i=0,saves = document.getElementById("saves").children; i < saves.length; ++i)
-	    if(this.localStorage[saves[i].innerText].split("+")[0] == location.hash.split("#")[1])
+	    if(this.localStorage[saves[i].innerText].split("+")[0] == location.hash.split("%20").join(" ").split("#")[1])
 		possible.push(saves[i]);
 	var lastMatch = possible.filter(function(element){ // sees if there's any save that was also most recently used
 	    return app.localStorage[element.innerText].split("+")[0] + "!" + element.innerText == localStorage.lastSaved;
