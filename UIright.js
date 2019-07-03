@@ -97,6 +97,7 @@ app.changedTerm = function(loadHash = false, referrer = null){
 	    document.getElementById("termSelect").value = this.term;
 	    return false;
 	}
+    ga('send', 'event', 'term', 'change');
     if(this.currentstorage && loadHash != true)
 	if(!this.clear()){ // user declined - fix selection box then return
 	    document.getElementById("termSelect").value = this.term;

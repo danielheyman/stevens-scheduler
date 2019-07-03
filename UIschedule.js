@@ -211,8 +211,6 @@ app.fillSchedule = function(referrer) {
     document.getElementById("escTip").style.display = this.course != null && (this.closed || app.courses[this.course].seatsAvailable) ? "" : "none";
 
     localStorage.setItem('lastViewed', this.generateHash(false));
-    if(this.selected.length > 0)
-	gtag('event', 'Schedules Tested');
 };
 
 // handler for catching shared scheduled mid-operation without a refresh
@@ -268,6 +266,8 @@ app.webclasses = function(courses){
 
 // fetches and dislpays the description of a course
 app.fetchDescription = function(course){
+    //legacy GA
+    ga('send', 'event', 'description', 'fetch');
     //first, show description box
     document.getElementById("description-fetch").style.display = "";
     document.getElementById("description-show").style.display = "none";
@@ -402,10 +402,7 @@ app.loadHash = function(first){
 	var lastMatch = possible.filter(function(element){ // sees if there's any save that was also most recently used
 	    return app.localStorage[element.innerText].split("+")[0] + "!" + element.innerText == localStorage.lastSaved;
 	});
-	if(!possible.length){ // no matches - probably completly new
-	    if((location.hash.split("&")[0].split("=")[1].length > 0) && (this.generateHash(false) != localStorage["lastViewed"])) // make sure there are actually some courses
-		gtag('event', 'Schedules Shared'); // is completly new
-	} else { // previous - load and update
+	if(possible.length){ // previous - load and update
 	    (lastMatch.length ? lastMatch[0] : possible[0]).classList.add("selected"); // if we're reloading, go for the known correct schedule. Else, go for the first one to match
 	    app.currentstorage = (lastMatch.length ? lastMatch[0] : possible[0]).innerText;
 	}
@@ -418,11 +415,13 @@ app.loadHash = function(first){
 app.click = function(course){
     if (this.autoInAlts(this.courses[this.course], course)) // needs to be added to selected
     {
+        ga('send', 'event', 'course', 'add');
 	document.getElementById("selectBox").value = "";
 	if(this.mode == "Manual"){
 	    this.course = null;
 	    this.selected.push(course);
 	} else {
+            ga('send', 'event', 'course', 'remove');
 	    var intended = this.autoConstruct(this.selected.concat(this.courses[this.course])).get(this.course_list_selection).filter(c => this.autoInAlts(this.courses[this.course], c))
 	    this.course = null;
 	    intended.forEach(c => app.selected.push(c));

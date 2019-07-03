@@ -168,6 +168,10 @@ app.updateSaved = function() {
 
 // save schedule
 app.save = function() {
+    //legacy GA
+    
+    ga('send', 'event', 'schedule', 'save');
+    
     if(!this.currentstorage) {
         var name = window.prompt("Please enter a name for the schedule");
         if(!name) return;
@@ -176,9 +180,6 @@ app.save = function() {
     
     if(!localStorage.schedules) localStorage.setItem('schedules', JSON.stringify({}));
     var schedules = JSON.parse(localStorage.schedules);
-
-    if(schedules[this.currentstorage] == undefined)
-	gtag('event', 'Schedules Created');
     
     schedules[this.currentstorage] = this.generateHash(true);
     localStorage.setItem('schedules', JSON.stringify(schedules));
@@ -186,7 +187,6 @@ app.save = function() {
     localStorage.setItem('lastSaved', this.generateHash(false) + "!" + this.currentstorage);
     
     this.updateSaved();
-    gtag('event', 'Schedules Saved');
 };
 
 // load schedule
@@ -194,6 +194,10 @@ app.load = function(schedule) {
     if(this.changed())
         if (!window.confirm("Are you sure you want to discard your changes?"))
 	    return false;
+    
+    //legacy GA
+    ga('send', 'event', 'schedule', 'load');
+    
     this.currentstorage = schedule;
     document.getElementById("notes").value = this.localStorage[schedule].split("+")[1];
     location.hash = this.localStorage[schedule].split("+")[0];
@@ -221,6 +225,10 @@ app.discard = function() {
     if(this.changed())
 	if (!window.confirm("Are you sure you want to discard your changes?"))
 	    return;
+
+    //legacy GA
+    ga('send', 'event', 'schedule', 'discard');
+    
     var schedule = this.currentstorage;
     this.currentstorage = null;
     this.load(schedule);
@@ -229,6 +237,7 @@ app.discard = function() {
 
 // creates a new schedule from an old schedule
 app.saveNew = function() {
+    ga('send', 'event', 'schedule', 'save-new');
     this.currentstorage = null;
     this.save();
 };
@@ -236,6 +245,7 @@ app.saveNew = function() {
 // deletes a saved schedule
 app.deleteSchedule = function() {
     if (window.confirm("Are you sure you want to delete the schedule " + this.currentstorage + "?")) {
+        ga('send', 'event', 'schedule', 'delete');
         var schedules = JSON.parse(localStorage.schedules);
         delete schedules[this.currentstorage];
         localStorage.setItem('schedules', JSON.stringify(schedules));
@@ -252,6 +262,7 @@ app.clear = function(bypass = false) {
     if(!bypass && this.changed())
         if (!window.confirm("Are you sure you want to discard your changes?"))
 	    return false;
+    ga('send', 'event', 'schedule', 'new');
     document.getElementById("selectBox").value = "";
     this.course_list_selection = 0;
     var range = document.getElementById('Range');
