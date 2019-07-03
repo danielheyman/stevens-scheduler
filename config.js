@@ -445,6 +445,7 @@ app_config.PROCESSgetCourses = function(responseText){
 
 	ret_course.courseNumber = courseJSON.section.match(/\d+/g)[0];
 	ret_course.subject = courseJSON.section.match(/[a-zA-Z]+/g)[0];
+	ret_course.sessionMod = courseJSON.section.match(/[a-zA-Z]+/g)[1];
 	
 	ret_course.URLcode = courseJSON.section;
 	ret_course.callNumber = courseJSON.callNumber;
@@ -462,7 +463,7 @@ app_config.PROCESSgetCourses = function(responseText){
 	// this covers "L"abs, "R"escissions, "W"orkshops, etc
 
 	ret_course.maximumEnrollment = parseInt(courseJSON.maxEnrollment);
-	ret_course.seatsAvailable = courseJSON.currentEnrollment ? parseInt(courseJSON.currentEnrollment) : ret_course.maximumEnrollment - parseInt(courseJSON.seatsAvailable);
+	ret_course.seatsAvailable = courseJSON.seatsAvailable ? parseInt(courseJSON.seatsAvailable) : ret_course.maximumEnrollment - parseInt(courseJSON.currentEnrollment);
 	
 	ret_course.meetings = courseJSON.daysTimeLocation.map(function(meeting){
 	    if(meeting.day == "TBA")
@@ -490,7 +491,11 @@ app_config.PROCESSgetCourses = function(responseText){
 	}).filter(meeting => meeting !== undefined);
 	ret_courses.push(ret_course);
     })
-    return ret_courses;
+    return ret_courses.map(function(course){ // deal with "S" courses
+	if(course.scheduleTypeDescription == "S")
+	    course.scheduleTypeDescription = course.sessionMod.substr(1)[0] || "";
+	return course;
+    });
 }
 
 
@@ -542,7 +547,7 @@ app_config.siteTitleShort = "CSU Scheduler";
 // This varible holds an abreviated (~3-4 char) name for that value that the user will understand
 //
 // For example, at CSU, this value is called the Course Reference Number, and is abreviated as CRN
-app_config.courseURLcodeName = "CRN";
+app_config.courseURLcodeName = "CN";
 
 // This is important when developing, go read up on CORS
 // This message will be shown at the bottom of the page when a user is locked out due to cors

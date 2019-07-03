@@ -100,7 +100,7 @@ app.fillSchedule = function(referrer) {
 		    innerText += Math.max(0, course.seatsAvailable) + '/' + course.maximumEnrollment + ' seats open\n';
 		if(course.waitAvailable && course.waitAvailable > 0)
 		    innerText += course.waitAvailable + '/' + course.waitCapacity + ' waitlist open\n';
-		innerText += app_config.courseURLcodeName + ': ' + course.URLcode + '\n';
+		innerText += app_config.courseURLcodeName + ': ' + course.callNumber + '\n';
 		div.innerText = innerText; // need to assign all at once so newlines work properly
 		var link = document.createElement("a");
 		link.className = "link";
@@ -141,7 +141,7 @@ app.fillSchedule = function(referrer) {
 		innerText += Math.max(0, course.seatsAvailable) + '/' + course.maximumEnrollment + ' seats open\n';
 	    if(course.waitAvailable && course.waitAvailable > 0)
 		innerText += course.waitAvailable + '/' + course.waitCapacity + ' waitlist open\n';
-	    innerText += app_config.courseURLcodeName + ': ' + course.URLcode + '\n';
+	    innerText += app_config.courseURLcodeName + ': ' + course.callNumber + '\n';
 	    div.innerText = innerText; // need to assign all at once so newlines work properly
 	    var link = document.createElement("a");
 	    link.className = "link";

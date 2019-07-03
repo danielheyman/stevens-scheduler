@@ -140,7 +140,7 @@ app.autoConstruct = function(courses){
 	});
 	return acc;
     }, []))).filter(function(schedule){
-	return !schedule.filter(course => !course.seatsAvailable && !app.closed).length;
+	return schedule.reduce((acc, course) => acc && ((course.seatsAvailable > 0) || app.closed), true);
     }).filter(this.schedCompat);
     this.savedCourseGenerator = "A"+this.removeDuplicatesBy(course => course.home, courses).map(el => el.home.URLcode).filter(c => c).join() + (this.closed ? "C" : "");
     return app.courses_generator;

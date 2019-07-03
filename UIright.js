@@ -159,7 +159,7 @@ app.genDivs = function(loadSelect = true){
     for(var i = 0; i < app.courses.length; i++){
 	var c = app.courses[i];
 	var el = document.createElement("option");
-	el.textContent = c.subject + ' ' + c.courseNumber + ': ' + c.title;
+	el.textContent = c.subject + ' ' + c.courseNumber + c.sessionMod + ': ' + c.title;
 	el.value = c.index;
 	app.courses_manual.push(el);
     }
@@ -239,7 +239,7 @@ app.hideSearch = function(referrer) {
 // hideSearch but for a single option
 app.filterSearch = function(course, search) {
     if(this.selected.indexOf(course) !== -1) return false;
-    if (!this.closed && (course.seatsAvailable == 0)) return false;
+    if (!this.closed && (this.mode == "Manual" ? (course.seatsAvailable == 0) : course.home.alts.map(altPack => altPack.map(c => c.seatsAvailable == 0).reduce((acc, cur) => acc && cur, true)).reduce((acc, cur) => acc || cur, false))) return false;
     
     if(search && !(
 	(course.subject + ' ' + course.courseNumber).toLowerCase().indexOf(search) > -1 ||
