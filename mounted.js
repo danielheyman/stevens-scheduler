@@ -16,7 +16,7 @@ change_style(styleSlider);
 
 //then check browser cache for radio buttons and checkboxes, update accordingly
 app.mode = document.getElementById("Manual").checked ? "Manual" : "Automatic";
-app.closed = Boolean(location.hash.split("&")[1]);
+app.closed = Boolean(app.getHash().split("&")[1]);
 document.getElementById("closedCheck").checked = app.closed;
 
 //check CORS
@@ -33,7 +33,7 @@ document.getElementById("closedCheck").checked = app.closed;
 //load terms -> then load courses and everything else
 (new Searcher("terms")).start(function(response){
     app.terms = app_config.PROCESSgetTerms(response);
-    if ((location.hash.split("=")[1] || "").split("&")[0].length && (index = app.terms.map(el => el.URLcode).indexOf(location.hash.split("=")[0].substr(1))) > -1){ //need to load from url
+    if ((app.getHash().split("=")[1] || "").split("&")[0].length && (index = app.terms.map(el => el.URLcode).indexOf(app.getHash().split("=")[0].substr(1))) > -1){ //need to load from url
 	app.term = app.terms[index].URLcode;
 	app.updateTerms();
 	app.changedTerm("first");

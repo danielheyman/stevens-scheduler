@@ -594,5 +594,6 @@ app_config.getLogoName = function(isDarkMode){
 // You should also go to index.html and do a few things
 // 1) Go set up google analytics, then go to the top of index.html and change the tracking tag
 // 2) Change the second <meta> tag's content to have a description of this website tailored for your college
+// 3) If there are any other scripts that need to be loaded, a good place to put them is at the end of mounted.js, as that's the last script file to load
 
 // At this point, just edit the README and you should be all done

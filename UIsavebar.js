@@ -201,7 +201,7 @@ app.load = function(schedule) {
     this.currentstorage = schedule;
     document.getElementById("notes").value = this.localStorage[schedule].split("+")[1];
     location.hash = this.localStorage[schedule].split("+")[0];
-    var currentTerm = location.hash.split("=")[0].substr(1);
+    var currentTerm = this.getHash().split("=")[0].substr(1);
     if ((index = this.terms.map(term => term.URLcode).indexOf(currentTerm)) > -1){ // make sure term is valid
         if(this.term != this.terms[index].URLcode) {
 	    this.term = this.terms[index].URLcode;

@@ -221,9 +221,9 @@ app.fillSchedule = function(referrer) {
 onhashchange = function(){
     //first, check if we need to load
     //IE, if hash agrees with loaded schedule
-    if(!(app.generateHash(false) == location.hash.substr(1).split("%20").join(" ")) && location.hash.substr(1).split("=")[0].length){
+    if(!(app.generateHash(false) == app.getHash().substr(1)) && app.getHash().substr(1).split("=")[0].length){
 	//first change term
-	app.term = app.terms[app.terms.map(el => el.URLcode).indexOf(location.hash.split("=")[0].substr(1))].URLcode;
+	app.term = app.terms[app.terms.map(el => el.URLcode).indexOf(app.getHash().split("=")[0].substr(1))].URLcode;
 	//then load selected & render on screen
 	app.updateTerms();
 	app.changedTerm("first");
@@ -387,17 +387,17 @@ app.dayUpdate = function(){
 
 // used to load in a schedule from either a save or a shared URL
 app.loadHash = function(first){
-    var hashes = location.hash.split("%20").join(" ").split("=")[1].split("&")[0].split(",");
+    var hashes = this.getHash().split("=")[1].split("&")[0].split(",");
     this.selected = app.courses.filter(function(course){
 	return hashes.indexOf(course.URLcode.toString()) > -1;
     });
-    document.getElementById("closedCheck").checked = !!location.hash.split("&")[1];
-    this.closed = !!location.hash.split("&")[1];
+    document.getElementById("closedCheck").checked = !!this.getHash().split("&")[1];
+    this.closed = !!this.getHash().split("&")[1];
     if(first){ // loading hash from URL - check if there's a save which matches, and if so select it
 	// this will choose the firstmost schedule that matches
 	var possible = [];
 	for(var i=0,saves = document.getElementById("saves").children; i < saves.length; ++i)
-	    if(this.localStorage[saves[i].innerText].split("+")[0] == location.hash.split("%20").join(" ").split("#")[1])
+	    if(this.localStorage[saves[i].innerText].split("+")[0] == this.getHash().split("#")[1])
 		possible.push(saves[i]);
 	var lastMatch = possible.filter(function(element){ // sees if there's any save that was also most recently used
 	    return app.localStorage[element.innerText].split("+")[0] + "!" + element.innerText == localStorage.lastSaved;

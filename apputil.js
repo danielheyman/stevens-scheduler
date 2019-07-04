@@ -8,6 +8,9 @@ app.generateHash()
 >generates a hash value string containing all information about a given schedule
 >used for sharing URLs and saving schedules
 
+app.getHash()
+>get the current location.hash with decodeURIComponent
+
 app.changed()
 >checks if the user has selected a saved schedule,
 >and if there is any deviation between that saved schedule and what is actually on the board
@@ -37,6 +40,12 @@ app.generateHash = function(includeNotes) {
     if(includeNotes === true)
 	hash += "+" + document.getElementById("notes").value;
     return hash;
+};
+
+
+// gets the current location.hash with decodeURIComponent
+app.getHash = function(){
+    return decodeURIComponent(location.hash);
 };
 
 
