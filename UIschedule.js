@@ -293,38 +293,34 @@ app.fetchDescription = function(course){
     }
 };
 
-// if needed, expands schedule to include Saturdays and Sundays
+// if needed, expands schedule to include Saturdays and Sundays - and show "No valid schedules"
 app.dayUpdate = function(){
     var test = false;
     //first, hide weekends
-    if(this.mode == "Automatic"){
-	if(app.courses_generator)
-	    if(app.courses_generator.data){
-		if(app.courses_generator.data[this.course_list_selection]){
-		    test = app.courses_generator.data[this.course_list_selection].value;
-		    document.getElementById("noSchedWrapper").style.display = "none";
-		    if(document.getElementById("schedTbody").children[0].children[1].style.display == "none"){
-			for(var i=1; i<=5; ++i){
-			    var trs = document.getElementById("schedTbody").children;
-			    for(var j=0; j<trs.length; ++j){
-				trs[j].children[i].style.display = "";
-			    }
-			}
+    if(this.mode == "Automatic"){ // check if valid
+	if((app.selected.length == 0) || (app.courses_generator && app.courses_generator.data && app.courses_generator.data[this.course_list_selection])){
+	    //good to go
+	    document.getElementById("noSchedWrapper").style.display = "none";
+	    if(document.getElementById("schedTbody").children[0].children[1].style.display == "none"){
+		for(var i=1; i<=5; ++i){
+		    var trs = document.getElementById("schedTbody").children;
+		    for(var j=0; j<trs.length; ++j){
+			trs[j].children[i].style.display = "";
 		    }
-		} else { // no valid schedules - show msg
-		    document.getElementById("noSchedWrapper").style.display = "";
-		    if(document.getElementById("schedTbody").children[0].children[1].style.display == ""){
-			for(var i=1; i<=5; ++i){
-			    var trs = document.getElementById("schedTbody").children;
-			    for(var j=0; j<trs.length; ++j){
-				trs[j].children[i].style.display = "none";
-			    }
-			}
-		    }
-		} // let it continue - will wipe saturdays & sundays
+		}
 	    }
-    } else { // Manual
-	test = this.selected.concat(app.courses[this.course]);
+	} else { // no valid schedules - show msg
+	    document.getElementById("noSchedWrapper").style.display = "";
+	    if(document.getElementById("schedTbody").children[0].children[1].style.display == ""){
+		for(var i=1; i<=5; ++i){
+		    var trs = document.getElementById("schedTbody").children;
+		    for(var j=0; j<trs.length; ++j){
+			trs[j].children[i].style.display = "none";
+		    }
+		}
+	    }
+	} // let it continue - will wipe saturdays & sundays
+    } else { // Manual - always valid
 	document.getElementById("noSchedWrapper").style.display = "none";
 	if(document.getElementById("schedTbody").children[0].children[1].style.display == "none"){
 	    for(var i=1; i<=5; ++i){
