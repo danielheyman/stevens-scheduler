@@ -15,7 +15,7 @@ Those sections are as follows:
 -librequests processing
  L->Used to process incoming requests and construct course objects
 -misc
- L->basically a big stringtable
+ L->Used for determining names of files, error messages, and your college's name
 */
 
 //config init -- don't touch this
@@ -576,12 +576,6 @@ app_config.siteTitleShort = "SIT Scheduler";
 // For example, at CSU, this value is called the Course Reference Number, and is abreviated as CRN
 app_config.courseRegistrationCodeName = "CN";
 
-// This is important when developing, go read up on CORS
-// This message will be shown at the bottom of the page when a user is locked out due to cors
-// It might be a good idea to fill in some details about who controls the web servers at your college
-// That way, if people start using your tool, you can get them to talk to whoever can make it open access
-app_config.CORScustom = "If you're seeing this message, everything's broken";
-
 // app_config.getLogoName()
 // Should return the file path/name of your college's logo, the one saved in this directory
 // At this point, you should go download the logos and place them in the same directory as this file
@@ -591,9 +585,31 @@ app_config.getLogoName = function(isDarkMode){
     return "Stevens-Official-" + (isDarkMode ? "WhiteKO" : "PMSColor") + "-R.svg";
 }
 
+
+// These next two values are important when developing. Go read up on CORS and why it's a problem
+
+// This first value specifies whether or not to worry about CORS. The reason this needs to be here
+// is because it's impossible to tell the difference between a normal failed network request
+// and one that's blocked because of CORS unless you're a developer - (and not the script running
+// on the end user's machine)
+// If you expect to have CORS issues, maybe because your college isn't on board with this project yet,
+// set this value to true, and the CORS noti will display for blocked users. Else, set it to false
+// and a "your college's servers seem to be down - check again later" noti will be shown when requests fail
+app_config.CORStest = false;
+
+// This second value only will only matter when the above is set to true. At the end of the standard
+// message (found in index.js), this will be appended in bold. Use this area to outline something about
+// how the user can convince your college to give access to the website. A name/email of the person that
+// runs the web servers is a good idea. Here's an example:
+// app_config.CORScustom = "If you\'d like to use this tool without needing an extension, go bother Jon Doe, Director of Web Communications, (Jon.Doe@yourcollege.edu) and say you like this tool and want to see it used freeley.";
+app_config.CORScustom = "";
+
+
+
 // You should also go to index.html and do a few things
 // 1) Go set up google analytics, then go to the top of index.html and change the tracking tag
 // 2) Change the second <meta> tag's content to have a description of this website tailored for your college
-// 3) If there are any other scripts that need to be loaded, a good place to put them is at the end of mounted.js, as that's the last script file to load
+// 3) If there are any other scripts that need to be loaded, a good place to put them is at the end of mounted.js,
+//    as that's the last script file to load
 
-// At this point, just edit the README and you should be all done
+// At this point, just download files, edit the README and you should be all done

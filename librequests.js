@@ -165,7 +165,10 @@ class Searcher{
 		    ref.xhr = null;
 		}
 		if(ref.type == "test" && this.readyState === 4 && this.status === 0){ // test failed
-		    console.error("CORS DENIED - please enable a CORS-everywhere extension or ask " + app_config.collegeNameShort + " to let us in");
+		    if(app_config.CORStest === true)
+			console.error("CORS DENIED - please enable a CORS-everywhere extension or ask " + app_config.collegeNameShort + " to let us in");
+		    else
+			console.error("Can't communicate with " + app_config.collegeName + ' servers. They\'re probable down right now - check back later.');
 		    if(callback)
 			callback(false);
 		    return;

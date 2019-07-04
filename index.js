@@ -7,10 +7,23 @@ I use anon functions so they don't stick around in namespace
 
 //config.js stuff
 document.title = app_config.siteTitle;
-document.getElementById("cors").innerHTML = 'Hi, and welcome to ' + app_config.siteTitleShort + '! This is a tool for creating, editing, testing, and sharing schedules for ' + app_config.collegeName + '.<br>' +
-      '<br>' +
-      'It appears you\'re having some network issues. Please <b>reload the page</b>.<br>' +
-      '<br>If you\'re a developer seeing this message, you may need to use a cors-everywhere extension to get incoming requests working while not on sitscheduler.com.';
+if(app_config.CORStest === true){
+    document.getElementById("cors").innerHTML = 'Hi, and welcome to ' + app_config.siteTitleShort + '! This is a tool for creating, editing, testing, and sharing schedules for ' + app_config.collegeName + '.<br>' +
+	'<br>' +
+	'I can see you\'re locked out of the ' + app_config.collegeNameShort + ' systems. Unfortunately, there isn\'t anything the developer can do about this. This is because ' + app_config.collegeNameShort + ' won\'t recognize this website as friendly.<br>' +
+	'<b>In order to use this tool, please download and use a CORS-everywhere extension</b> and refresh. This intercepts data coming from ' + app_config.collegeNameShort + '\'s servers and makes your browser think ' + app_config.collegeNameShort + ' trusts us, so that your browser doesn\'t lock you out. Here are a few I recommend:<br>' +
+	'<a href="https://addons.mozilla.org/en-US/firefox/addon/cors-everywhere/">Firefox</a><br>' +
+	'For Chrome, it\'s a bit more envolved. See <a href="https://www.codevoila.com/post/75/how-to-disable-same-origin-policy-in-chrome">this</a> for more details.' +
+	'<br>' +
+	'NOTE: it is technically unsafe to browse with CORS-everywhere enabled. Please, disable it when not using this tool.<br>' +
+	'<br><b>' + app_config.CORScustom + '</b>';
+} else {
+    document.getElementById("cors").innerHTML = 'Hi, and welcome to ' + app_config.siteTitleShort + '! This is a tool for creating, editing, testing, and sharing schedules for ' + app_config.collegeName + '.<br>' +
+	'<br>' +
+	'<b>The ' + app_config.collegeNameShort + ' servers seem to be down right now. Check back later.</b><br>' +
+	'<br>' +
+	'If you\'re a developer, this might be a CORS related issue.';
+}
 
 // thead - fill with days of the week
 // see comment in index.html within <td id="schedThead">

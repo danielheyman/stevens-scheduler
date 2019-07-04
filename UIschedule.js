@@ -391,8 +391,8 @@ app.loadHash = function(first){
     this.selected = app.courses.filter(function(course){
 	return hashes.indexOf(course.URLcode.toString()) > -1;
     });
-    document.getElementById("closedCheck").checked = !!this.getHash().split("&")[1];
-    this.closed = !!this.getHash().split("&")[1];
+    document.getElementById("closedCheck").checked = Boolean(this.getHash().split("&")[1]);
+    this.closed = Boolean(this.getHash().split("&")[1]);
     if(first){ // loading hash from URL - check if there's a save which matches, and if so select it
 	// this will choose the firstmost schedule that matches
 	var possible = [];

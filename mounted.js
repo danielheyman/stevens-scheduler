@@ -88,7 +88,7 @@ ga('create', 'UA-96461430-1', 'auto');
 ga('send', 'pageview');
 
 
-// HeadUser
+// HeadUser - will throw a warning when not on the correct domain (during testing)
 (function () { var hu = document.createElement("script"); hu.type = "text/javascript"; hu.async = true; hu.src = "//www.heeduser.com/supfiles/Script/widget.js"; var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(hu, s); })()
 var _heeduser = {
 type: "button",
