@@ -125,6 +125,9 @@ class Searcher{
 	case "prime":
 	    app_config.URLprime(GETPOST, this.term);
 	    break;
+	case "count":
+	    app_config.URLgetCourseTotalCount(GETPOST, this.term);
+	    break;
 	case "courses":
 	    app_config.URLgetCourses(GETPOST, this.term, this.offset, this.size);
 	    break;
@@ -143,6 +146,12 @@ class Searcher{
 	// check to make sure config.js has set GETPOST correctly
 	if(GETPOST.url == null)
 	    console.error("url not set for request of type " + this.type + ". There's an erorr in config.js");
+	if(GETPOST.url == "" && ((this.type == "prime") || (this.type == "count"))){
+	    this.xhr = null;
+	    this.done = true;
+	    callback(false); // false -> let hedRequest know we're not counting anything
+	    return; // in the case where a college's servers are designed well and we don't need to check these
+	}
 	if(GETPOST.openMethod == null)
 	    console.error("openMethod not set for request of type " + this.type + ". There's an erorr in config.js");
 	if(GETPOST.openMethod == "POST" && GETPOST.postData == null)
@@ -151,8 +160,10 @@ class Searcher{
 	this.xhr = new XMLHttpRequest();
 	this.xhr.onreadystatechange = function(ref){ // callback
 	    return function(){
-		if(this.readyState == 4)
+		if(this.readyState == 4){
+		    this.done = true;
 		    ref.xhr = null;
+		}
 		if(ref.type == "test" && this.readyState === 4 && this.status === 0){ // test failed
 		    console.error("CORS DENIED - please enable a CORS-everywhere extension or ask " + app_config.collegeNameShort + " to let us in");
 		    if(callback)
@@ -166,11 +177,9 @@ class Searcher{
 		}
 		if(ref.type == "test")
 		    return; // forget about everything else if it's just a test
-		if (this.readyState === 4 && this.status === 200){
-		    var response = null;
-		    response = this.responseText;
+		if (this.readyState === 4 && this.status === 200){ // everything else
 		    if(callback)
-			callback(response);
+			callback(this.responseText);
 		    ref.done = true;
 		    ref.xhr = null;
 		    return;
@@ -247,61 +256,112 @@ class TermManager{
 	}
 	var callback = function(TermManager_ref){ // set up callback for the first Searcher request, actual execution is after definition
 	    return function(ignored){ // this one is just needed to get cookies in line
-		app.percent = "";
-		app.updatePercent();
-		TermManager_ref.headRequest = null;
-		TermManager_ref.requests.push(new Searcher("courses", TermManager_ref.term));
-		TermManager_ref.requests[0].start(function(responseData){ // individual callbacks
-		    var preProcessedCourses = app_config.PROCESSgetCourses(responseData);
-		    TermManager_ref.data.push({courses: preProcessedCourses, offset: 0}); // cache...
-		    // and check if we're done
-		    var loadedAmount = TermManager_ref.data.reduce(function(acc, cur){ // check how many courses we have loaded
+		if(TermManager_ref.requests.length){ // we've already made some requests - just finish them
+		    var loadedAmount = TermManager_ref.data.reduce(function(acc, cur){ // check how many courses we have loaded so far
 			return acc + cur.courses.length; // by summing them all up
 		    }, 0);
-		    app.updatePercent();
-		    app.percent += "\nProcessng courses...";
-		    app.updatePercent();
-		    // if so, process data and mark term complete
-		    TermManager_ref.data = postProcessCourses(
-			TermManager_ref.data // take fufilled requests
-			    .sort((a, b) => a.offset - b.offset) // sort them all, because they probably won't load in order
-			    .reduce(function(acc, cur){ // and unwrap them all
-				return acc.concat(cur.courses); // into one big array
-			    }, [])
-		    ); // then post process them so automatic mode actually works
-		    
-		    TermManager_ref.done = true;
-		    TermManager_ref.requests = []; // free up some memory
-		    // finally ready to run the callback. Probably for updating UI
-		    if(TermManager_ref.main_callback_wrapper.callback) // it's weird because we can't close in the function, we need to make sure it can change
-			TermManager_ref.main_callback_wrapper.callback(TermManager_ref.data);
-		    
-		    // if we get here, we automatically know there are no other term requests running
-		    // so instead of having down time, start looking for other terms to load
-		    // we'll only work on loading the terms that are sitting in saves because
-		    // those are most likely to be looked at
-		    // we won't just load all terms because that's a good bit of data
-		    var saves = document.getElementById("saves").children;
-		    var saveTerms = [];
-		    // look through each save and grab their terms
-		    for(var i=0; i<saves.length; ++i)
-			saveTerms.push(app.localStorage[saves[i].innerText].split("=")[0]);
-		    // then look through loaded terms and grab their terms
-		    var completedTerms = app.termCacher.termManagers.filter(manager => manager.done).map(manager => manager.term);
-		    // then find the first save term that doesn't have a fully loaded term
-		    for(var i=0; i<saveTerms.length; ++i){
-			if(!completedTerms.find(term => term == saveTerms[i])){
-			    // and if we find one, start loading it in the background
-			    app.termCacher.push(saveTerms[i], null);
-			    return;
-			}
+		    if(TermManager_ref.totalCount !== undefined){
+			app.percent = loadedAmount.toString() + "/" + TermManager_ref.totalCount.toString();
+			app.updatePercent();
 		    }
-		    // if we reach here, all of our saves are loaded and there's nothing else to do
-		});
+		    TermManager_ref.headRequest = null;
+		    TermManager_ref.requests.forEach(function(request){
+			request.start(function(responseData){ // individual callbacks
+			    var preProcessedCourses = app_config.PROCESSgetCourses(responseData);
+			    TermManager_ref.data.push({courses: preProcessedCourses, offset: request.offset}); // cache...
+			    // and check if we're done
+			    var loadedAmount = TermManager_ref.data.reduce(function(acc, cur){ // check how many courses we have loaded
+				return acc + cur.courses.length; // by summing them all up
+			    }, 0);
+			    
+			    if(TermManager_ref.totalCount !== undefined){
+				app.percent = loadedAmount.toString() + "/" + TermManager_ref.totalCount.toString();
+				app.updatePercent();
+			    }
+			    if((TermManager_ref.totalCount === undefined) || (loadedAmount >= app_config.test_percent_cap*TermManager_ref.totalCount/100)){ // and see if we've got enough
+				app.percent += "\nProcessng courses...";
+				app.updatePercent();
+				// if so, process data and mark term complete
+				TermManager_ref.data = postProcessCourses(
+				    TermManager_ref.data // take fufilled requests
+					.sort((a, b) => a.offset - b.offset) // sort them all, because they probably won't load in order
+					.reduce(function(acc, cur){ // and unwrap them all
+					    return acc.concat(cur.courses); // into one big array
+					}, [])
+				); // then post process them so automatic mode actually works
+				
+				TermManager_ref.done = true;
+				TermManager_ref.requests = []; // free up some memory
+				// finally ready to run the callback. Probably for updating UI
+				if(TermManager_ref.main_callback_wrapper.callback) // it's weird because we can't close in the function, we need to make sure it can change
+				    TermManager_ref.main_callback_wrapper.callback(TermManager_ref.data);
+				
+				// if we get here, we automatically know there are no other term requests running
+				// so instead of having down time, start looking for other terms to load
+				// we'll only work on loading the terms that are sitting in saves because
+				// those are most likely to be looked at
+				// we won't just load all terms because that's a good bit of data
+				var saves = document.getElementById("saves").children;
+				var saveTerms = [];
+				// look through each save and grab their terms
+				for(var i=0; i<saves.length; ++i)
+				    saveTerms.push(app.localStorage[saves[i].innerText].split("=")[0]);
+				// then look through loaded terms and grab their terms
+				var completedTerms = app.termCacher.termManagers.filter(manager => manager.done).map(manager => manager.term);
+				// then find the first save term that doesn't have a fully loaded term
+				for(var i=0; i<saveTerms.length; ++i){
+				    if(!completedTerms.find(term => term == saveTerms[i])){
+					// and if we find one, start loading it in the background
+					app.termCacher.push(saveTerms[i], null);
+					return;
+				    }
+				}
+				// if we reach here, all of our saves are loaded and there's nothing else to do
+			    }
+			});
+		    });
+		} else { // first time requesting - do a small request first to gauge total size, then fill up
+		    app.percent = "0/?";
+		    app.updatePercent(); // update loading bar (if running in the background, it will be hidden)
+		    TermManager_ref.headRequest = new Searcher("count", TermManager_ref.term);
+		    TermManager_ref.headRequest.start(function(responseData){
+			TermManager_ref.headRequest = null; // head requests are all done
+			if(responseData === false){ // this can only happen when config.js says we don't
+			                            // need to count and all courses will be in 1 request
+			    app.percent = "";
+			    app.updatePercent();
+			    var searcher = new Searcher("courses", TermManager_ref.term, 0, 0);
+			    searcher.offset = 0;
+			    TermManager_ref.requests.push(searcher);
+			    TermManager_ref.start(TermManager_ref.main_callback_wrapper.callback, true);
+			} else {
+			    TermManager_ref.totalCount = app_config.PROCESSgetCourseTotalCount(responseData);
+			    app.percent = "0/" + TermManager_ref.totalCount.toString();
+			    app.updatePercent();
+			    let offsets = []; // stores offset values for each subsequent required request
+			    for(var i = 0; i<app_config.test_percent_cap*TermManager_ref.totalCount/100; i+=app_config.chunk)
+				offsets.push(i); // fill offsets with integer values starting at 0
+			    // offset by app_config.chunk size, and going up to only what we need to request
+			    
+			    offsets.forEach(function(offset){ // construct all subsequent requests
+				var searcher = new Searcher("courses", TermManager_ref.term, offset, app_config.chunk);
+				searcher.offset = offset; // we carry offset through so we can sort courses in the
+				// correct order after they're all loaded in
+				TermManager_ref.requests.push(searcher);
+			    });
+			    TermManager_ref.start(TermManager_ref.main_callback_wrapper.callback, true); // recurse into start. Now that requests is filled, it'll just start them all
+			}
+		    });
+		}
 	    }
 	}(this);
-
-	callback(null);
+	
+	if(bypass){ // recursing -- don't bother POSTing again
+	    callback(null);
+	} else { // not recursing -- POST and then run callback
+	    this.headRequest = new Searcher("prime", this.term); // prime it
+	    this.headRequest.start(callback);
+	}
     }
 }
 

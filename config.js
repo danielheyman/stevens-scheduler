@@ -40,7 +40,7 @@ This section contains options useful for non-production versions
 
 // Used for testing - out of a given term, this is how many courses are to be loaded
 // A lower percentage means fewer courses, which means less functionality but faster loading & testing
-app_config.test_percent_cap = 1;
+app_config.test_percent_cap = 100;
 
 // Used for performance tuning - for each large courses request, this is how many courses are requested
 // A lower number means fewer courses requested per request and thus faster requests, but more requests overall
@@ -109,7 +109,15 @@ app_config.URLgetDescription()
 Now, if these are all GET requests, easy. If they're post requests, pay attention
 to the parameters too, you can fill those in too. Use the GETPOST parameter.
 
-4) Get it working by itself
+4) Learn a bit about what courses are available
+With some colleges, you need to make multiple requests in order to load all courses
+in a given term. In this case, you need to know how many courses there are to load.
+Fill out:
+app_config.URLgetCourseTotalCount()
+NOTE: if your college is nice and you only need to make a single request for all the
+courses in a term, you still need to go check the notes above app_config.URLgetCourseTotalCount()
+
+5) Get it working by itself
 Now that you have all the URLS you need, you need to be able to actually make requests.
 Why is this important to note? Some colleges require session authentication cookies,
 which make it impossible to come out of the blue and request courses, but possible
@@ -119,9 +127,9 @@ scenarios, there are two built in request functions. They are as follows:
 app_config.URLtest() and app_config.URLprime()
 URLtest  deals with the session approach
 URLprime deals with the term    approach
-They can be used together, appart, or not at all. At this point, figure out what
-requests you need to make in order to make term and course requests off of the
-official site. Then fill out:
+They can be used together, appart, or not at all. If not needed, set GETPOST.url to ""
+At this point, figure out what requests you need to make in order to make term and 
+course requests off of the official site. Then fill out:
 app_config.URLtest()
 app_config.URLprime()
 
@@ -184,6 +192,18 @@ app_config.URLgetCourses = function(GETPOST, termURLcode, offset, size){
 app_config.URLgetDescription = function(GETPOST, termURLcode, courseURLcode){
     GETPOST.openMethod = "GET";
     GETPOST.url = app_config.URLprefix + "desc/" + courseURLcode;
+}
+
+// app_config.URLgetCourseTotalCount()
+// This function returns the URL needed for checking how many courses can be loaded in a single term
+//
+// For example, if we're looking at Fall 2019 and there are 6610 courses in this term, this function
+// should return the URL which when loaded has data containing 6610.
+//
+// NOTE: if your college is nice and gives you all the courses in a single request, and thus you don't
+//       need to count them, set GETPOST.url to "" and return
+app_config.URLgetCourseTotalCount = function(GETPOST, termURLcode){
+    GETPOST.url = "";
 }
 
 // app_config.URLtest()
