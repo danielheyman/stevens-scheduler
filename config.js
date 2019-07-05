@@ -145,6 +145,15 @@ and see JSON coming in properly. If you can get this to work, continue on to the
 // every request will start with this string, and have data appended to it
 // if you have a special case, it can be addressed in specific functions
 // this is for convienence only
+//
+// NOTE: If you are able to use a CORS proxy, this is a good place to prefix it.
+// However, if your college uses header cookies (like CSU) it might difficult or
+// impossible to use a direct proxy to load courses from your college.
+// Two options: 1) Forget about CORS and set app_config.CORStest to true
+//                 while you wait for your college to add Allow-Access-Control-Origin
+//              2) Set up your own server that loads courses and re-distributes
+//                 them to end-users, appending Allow-Access-Control-Origin yourself
+//                 This means less overhead on your college but way more work on your end
 app_config.URLprefix = 'https://stevens-scheduler.cfapps.io/p/';
 
 // app_config.URLgetTerms()
