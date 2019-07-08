@@ -225,11 +225,9 @@ onhashchange = function(){
     //first, check if we need to load
     //IE, if hash agrees with loaded schedule
     if(!app.disableOnHashChange && !(app.generateHash(false) == app.getHash().substr(1)) && app.getHash().substr(1).split("=")[0].length){
-	//first change term
-	app.term = app.terms[app.terms.map(el => el.URLcode).indexOf(app.getHash().split("=")[0].substr(1))].URLcode;
 	//then load selected & render on screen
+	app.changedTerm("first", {value: app.terms[app.terms.map(el => el.URLcode).indexOf(app.getHash().split("=")[0].substr(1))].URLcode}); // need to pend a term change, just like loading a schedule
 	app.updateTerms();
-	app.changedTerm("first");
     }
     app.disableOnHashChange = false;
 };
@@ -408,6 +406,8 @@ app.loadHash = function(first){
 	} else { // previous - load and update
 	    (lastMatch.length ? lastMatch[0] : possible[0]).classList.add("selected"); // if we're reloading, go for the known correct schedule. Else, go for the first one to match
 	    app.currentstorage = (lastMatch.length ? lastMatch[0] : possible[0]).innerText;
+	    // and update notes too
+	    document.getElementById("notes").value = this.localStorage[app.currentstorage].split("+")[1];
 	}
     }
 };

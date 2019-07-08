@@ -127,7 +127,7 @@ app.saveMarker = function() {
     document.getElementById("marker-saveAsNew").style.display = this.currentstorage ? "" : "none";
     document.getElementById("marker-delete").style.display = this.currentstorage ? "" : "none";
     document.getElementById("marker-export").style.display = this.selected.length ? "" : "none";
-    document.getElementById("marker-new").style.display = this.selected.length ? "" : "none";
+    document.getElementById("marker-new").style.display = (this.currentstorage || this.selected.length) ? "" : "none";
 };
 
 // renders in all the saved schedules buttons into the <div id="saves"> tag
