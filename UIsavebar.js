@@ -200,14 +200,15 @@ app.load = function(schedule) {
     
     this.currentstorage = schedule;
     document.getElementById("notes").value = this.localStorage[schedule].split("+")[1];
+    app.disableOnHashChange = true;
     location.hash = this.localStorage[schedule].split("+")[0];
     var currentTerm = this.getHash().split("=")[0].substr(1);
     if ((index = this.terms.map(term => term.URLcode).indexOf(currentTerm)) > -1){ // make sure term is valid
-        if(this.term != this.terms[index].URLcode) {
+        if(this.term != this.terms[index].URLcode) { // need to switch term
 	    this.term = this.terms[index].URLcode;
 	    this.updateTerms();
 	    this.changedTerm(true);
-        } else {
+        } else { // already on correct term
 	    this.course = null;
 	    document.getElementById("selectBox").value = "";
 	    this.updateTerms();
@@ -258,10 +259,14 @@ app.deleteSchedule = function() {
 };
 
 // clears the board and deselects a saved schedule, if selected
-app.clear = function(bypass = false) {
-    if(!bypass && this.changed())
-        if (!window.confirm("Are you sure you want to discard your changes?"))
+app.clear = function(bypass = false, share = false) {
+    // bypass is true when recieving a shared schedule or when deleting a schedule (the latter so messages make sense to user)
+    if(!bypass && this.changed()){ // don't confirm on bypass
+        if (!window.confirm("Are you sure you want to discard your changes?")){
+	    location.hash = app.generateHash(false);
 	    return false;
+	}
+    }
     ga('send', 'event', 'schedule', 'new');
     document.getElementById("selectBox").value = "";
     this.course_list_selection = 0;
@@ -270,7 +275,8 @@ app.clear = function(bypass = false) {
     range.value = 0;
     app.courses_generator = null;
     this.savedCourseGenerator = "";
-    location.hash = "";
+    if(!share) // on share, keep hash the same
+	location.hash = "";
     document.getElementById("notes").value = "";
     this.course = null;
     this.selected = [];

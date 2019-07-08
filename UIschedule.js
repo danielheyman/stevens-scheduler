@@ -95,7 +95,7 @@ app.fillSchedule = function(referrer) {
 	    if(course && courseHere){
 		var div = document.createElement("div");
 		div.className = "item";
-		var innerText = course.subject + ' ' + course.courseNumber + '\n' + course.title.replace(/&ndash;/g, "–") + '\n' + course.faculty + '\n' + courseHere.loc + '\n' + course.credits + ' credit' + (course.credits !=1 ? 's' : '') + '\n';
+		var innerText = course.subject + ' ' + course.courseNumber + '\n' + course.title.replace(/&ndash;/g, "–") + '\n' + (course.faculty.trim().length ? (course.faculty + '\n') : "") + (courseHere.loc.length ? (courseHere.loc + '\n') : "") + course.credits + ' credit' + (course.credits !=1 ? 's' : '') + '\n';
 		if((course.seatsAvailable !== undefined) && (course.maximumEnrollment !== undefined))
 		    innerText += Math.max(0, course.seatsAvailable) + '/' + course.maximumEnrollment + ' seats open\n';
 		if((course.waitAvailable !== undefined) && (course.waitAvailable !== undefined))
@@ -136,7 +136,7 @@ app.fillSchedule = function(referrer) {
 	if(course){
 	    var div = document.createElement("div");
 	    div.className = "item";
-	    var innerText = course.subject + ' ' + course.courseNumber + '\n' + course.title.replace(/&ndash;/g, "–") + '\n' + course.faculty + '\n' + course.credits + ' credit' + (course.credits !=1 ? 's' : '') + '\n';
+	    var innerText = course.subject + ' ' + course.courseNumber + '\n' + course.title.replace(/&ndash;/g, "–") + '\n' + (course.faculty.trim().length ? (course.faculty + '\n') : "") + course.credits + ' credit' + (course.credits !=1 ? 's' : '') + '\n';
 	    if((course.seatsAvailable !== undefined) && (course.maximumEnrollment !== undefined))
 		innerText += Math.max(0, course.seatsAvailable) + '/' + course.maximumEnrollment + ' seats open\n';
 	    if((course.waitAvailable !== undefined) && (course.waitAvailable !== undefined))
@@ -211,6 +211,8 @@ app.fillSchedule = function(referrer) {
     document.getElementById("escTip").style.display = (this.course != null) ? "" : "none";
 
     localStorage.setItem('lastViewed', this.generateHash(false));
+    if(this.selected.length > 0)
+	gtag('event', 'Schedules Tested');
 };
 
 // handler for catching shared scheduled mid-operation without a refresh
@@ -218,16 +220,18 @@ app.fillSchedule = function(referrer) {
 // so, all we need to do is detect if we just ran a fill schedule
 // if so, ignore the hash change. If not, we know there's been a manual change -- refill
 // and alert GA of a schedule shared
+app.disableOnHashChange = false;
 onhashchange = function(){
     //first, check if we need to load
     //IE, if hash agrees with loaded schedule
-    if(!(app.generateHash(false) == app.getHash().substr(1)) && app.getHash().substr(1).split("=")[0].length){
+    if(!app.disableOnHashChange && !(app.generateHash(false) == app.getHash().substr(1)) && app.getHash().substr(1).split("=")[0].length){
 	//first change term
 	app.term = app.terms[app.terms.map(el => el.URLcode).indexOf(app.getHash().split("=")[0].substr(1))].URLcode;
 	//then load selected & render on screen
 	app.updateTerms();
 	app.changedTerm("first");
     }
+    app.disableOnHashChange = false;
 };
 
 // tests whether or not a course is in a day/hour, and if so returns a render object
@@ -242,9 +246,9 @@ app.courseHere = function(day, hour, course){
 	var end = this.convertTime(meeting.endTime);
 	if (Math.trunc(start, 0) != hour-8) return;
 	res = {
-	    top: start-Math.trunc(start,0),
+	    top: start-Math.trunc(start, 0),
 	    length: end-start,
-	    loc: meeting.building + " " + meeting.room,
+	    loc: ((Boolean(meeting.building) && meeting.building.trim().length && Boolean(meeting.room) && meeting.room.trim().length) ? (meeting.building + " " + meeting.room) : ""),
 	}
     }.bind(this));
     return res;
@@ -398,7 +402,10 @@ app.loadHash = function(first){
 	var lastMatch = possible.filter(function(element){ // sees if there's any save that was also most recently used
 	    return app.localStorage[element.innerText].split("+")[0] + "!" + element.innerText == localStorage.lastSaved;
 	});
-	if(possible.length){ // previous - load and update
+	if(!possible.length){ // no matches - probably completly new
+	    if((this.getHash().split("&")[0].split("=")[1].length > 0) && (this.generateHash(false) != localStorage["lastViewed"])) // make sure there are actually some courses
+		gtag('event', 'Schedules Shared'); // is completly new
+	} else { // previous - load and update
 	    (lastMatch.length ? lastMatch[0] : possible[0]).classList.add("selected"); // if we're reloading, go for the known correct schedule. Else, go for the first one to match
 	    app.currentstorage = (lastMatch.length ? lastMatch[0] : possible[0]).innerText;
 	}
@@ -409,8 +416,7 @@ app.loadHash = function(first){
 // this adds or removes the course from app.selected
 // but this needs extra steps and resets in auto mode
 app.click = function(course){
-    if (this.autoInAlts(this.courses[this.course], course)) // needs to be added to selected
-    {
+    if (this.autoInAlts(this.courses[this.course], course)){ // needs to be added to selected
         ga('send', 'event', 'course', 'add');
 	document.getElementById("selectBox").value = "";
 	if(this.mode == "Manual"){

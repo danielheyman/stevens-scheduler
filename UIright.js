@@ -92,17 +92,15 @@ app.genNext = function(button){
 // if loadHash is true, then render app.selected
 // if loadHash is "first", render from URL hash
 app.changedTerm = function(loadHash = false, referrer = null){
-    if(!loadHash && referrer && this.changed())
+    if(!loadHash && referrer && this.changed()){
         if (!window.confirm("Are you sure you want to discard your changes?")){
 	    document.getElementById("termSelect").value = this.term;
 	    return false;
 	}
+    }
     ga('send', 'event', 'term', 'change');
-    if(this.currentstorage && loadHash != true)
-	if(!this.clear()){ // user declined - fix selection box then return
-	    document.getElementById("termSelect").value = this.term;
-	    return;
-	}
+    if(this.currentstorage && loadHash != true && !this.clear(false, loadHash == "first"))
+	return document.getElementById("termSelect").value = this.term; // confirm
     if(referrer){
 	if(referrer.firstChild.value == "") // clean up on first get
 	    referrer.removeChild(referrer.firstChild);
