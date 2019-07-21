@@ -54,35 +54,35 @@ loadHash()
 
 // adds up the credit values of all selected courses and returns it as an integer
 app.totalCredits = function(){
-    return this.selected.reduce(function(acc, cur){
+    return app.selected.reduce(function(acc, cur){
 	return acc+cur.credits;
     }, 0);
 };
 
 // updates the "Total Credits" counter
 app.updateCredits = function() {
-    document.getElementById("credits").innerText = this.totalCredits();
+    document.getElementById("credits").innerText = app.totalCredits();
 };
 
 // shows or hides the automatic selection bar depending on the mode and number of courses selected
 app.autoBar = function(){
     var autoBar = document.getElementById("autoBar");
-    autoBar.style.display = this.mode == 'Automatic' && this.selected.concat(app.courses[this.course])[0] != null ? "inline-block" : "none";
+    autoBar.style.display = app.mode == 'Automatic' && app.selected.concat(app.courses[app.course])[0] != null ? "inline-block" : "none";
     document.getElementById('nextButton').innerText='Next';
 };
 
 // generates and displays the next valid schedule in automatic mode
 app.genNext = function(button){
     if(app.courses_generator && app.courses_generator.get(app.courses_generator.data ? app.courses_generator.data.length : 0)){ // see if there's another valid schedule we haven't seen yet
-	this.course_list_selection = (app.courses_generator.data ? app.courses_generator.data.length : 0)-1; // and show it to us
+	app.course_list_selection = (app.courses_generator.data ? app.courses_generator.data.length : 0)-1; // and show it to us
     } else { // done - start looping
-	this.course_list_selection++;
-	this.course_list_selection%=(app.courses_generator ? app.courses_generator.data.length : 0);
+	app.course_list_selection++;
+	app.course_list_selection%=(app.courses_generator ? app.courses_generator.data.length : 0);
     }
-    this.fillSchedule();
+    app.fillSchedule();
     var range = document.getElementById("Range");
     range.max = app.courses_generator ? app.courses_generator.data.length-1 : 0;
-    range.value = this.course_list_selection;
+    range.value = app.course_list_selection;
 
     button.innerText = (app.courses_generator ? app.courses_generator.done : false) ? "Loop" : "Next";
 };
@@ -92,40 +92,40 @@ app.genNext = function(button){
 // if loadHash is true, then render app.selected
 // if loadHash is "first", render from URL hash
 app.changedTerm = function(loadHash = false, referrer = null){
-    if(!loadHash && referrer && this.changed()){
+    ga('send', 'event', 'term', 'change');
+    if(!loadHash && referrer && app.changed()){
         if (!window.confirm("Are you sure you want to discard your changes?")){
-	    document.getElementById("termSelect").value = this.term;
+	    document.getElementById("termSelect").value = app.term;
 	    return false;
 	}
     }
-    ga('send', 'event', 'term', 'change');
-    if(loadHash != true && !this.clear(false, loadHash == "first"))
-	return document.getElementById("termSelect").value = this.term; // confirm
+    if(loadHash != true && !app.clear(false, loadHash == "first"))
+	return document.getElementById("termSelect").value = app.term; // confirm
     if(referrer){
 	if(referrer.firstChild && referrer.firstChild.value == "") // clean up on first get
 	    referrer.removeChild(referrer.firstChild);
-	this.term = referrer.value;
+	app.term = referrer.value;
     }
-    if(!this.term)
+    if(!app.term)
 	return; // empty
-    this.course = null;
+    app.course = null;
     document.getElementById("selectBox").value = "";
     document.getElementById("searchBox").value = "";
-    this.selected = [];
-    this.course_list_selection = 0;
+    app.selected = [];
+    app.course_list_selection = 0;
     var range = document.getElementById('Range');
     range.max = 0;
     range.value = 0;
     app.courses_generator = null;
-    this.savedCourseGenerator = "";
+    app.savedCourseGenerator = "";
     if(loadHash != "first")
-	this.fillSchedule(); // show empty while loading - don't need to on first load because it's already empty
-    this.percent = "";
+	app.fillSchedule(); // show empty while loading - don't need to on first load because it's already empty
+    app.percent = "";
 
     document.getElementById("coursesBox").style.display = "none";
     document.getElementById("loadingCourses").style.display = "";
     //request new term to be loaded, and on success update UI
-    app.termCacher.push(this.term, function(_loadHash){
+    app.termCacher.push(app.term, function(_loadHash){
 	return function(courses){
 	    // update UI
 	    app.updateNotes(document.getElementById("notes")); // fix style in case notes have been cached
@@ -158,7 +158,7 @@ app.genDivs = function(loadSelect = true){
     for(var i = 0; i < app.courses.length; i++){
 	var c = app.courses[i];
 	var el = document.createElement("option");
-	el.textContent = c.subject + ' ' + c.courseNumber + (c.sessionMod ? c.sessionMod : "") + ': ' + c.title;
+	el.innerHTML = c.subject + ' ' + c.courseNumber + (c.sessionMod ? c.sessionMod : "") + ': ' + c.title;
 	el.value = c.index;
 	app.courses_manual.push(el);
     }
@@ -166,7 +166,7 @@ app.genDivs = function(loadSelect = true){
     for(var i = 0; i < courses_auto.length; i++){
 	var c = courses_auto[i];
 	var el = document.createElement("option");
-	el.textContent = c.subject + ' ' + c.courseNumber + ': ' + c.title;
+	el.innerHTML = c.subject + ' ' + c.courseNumber + ': ' + c.title;
 	el.value = c.index;
 	app.courses_auto.push(el);
     }
@@ -180,65 +180,65 @@ app.updateTerms = function(){
     var selectBox = document.getElementById("termSelect");
     while(selectBox.lastChild)
 	selectBox.removeChild(selectBox.lastChild);
-    for(var i = 0; i < this.terms.length; i++){
-	var term = this.terms[i];
+    for(var i = 0; i < app.terms.length; i++){
+	var term = app.terms[i];
 	var option = document.createElement("option");
 	option.value = term.URLcode;
 	option.innerText = term.title;
 	selectBox.appendChild(option);
     }
-    selectBox.value = this.term;
+    selectBox.value = app.term;
 };
 
 // update the percent message on screen
 // fired in librequests.js
 app.updatePercent = function(){
-    document.getElementById("loadingCourses").innerText = "Loading Courses... " + this.percent;
+    document.getElementById("loadingCourses").innerText = "Loading Courses... " + app.percent;
 };
 
 // update the size of the notes box so it flexes with content
 app.updateNotes = function(noteBox){
     noteBox.style.height='25px';
     noteBox.style.height=(noteBox.scrollHeight+25)+'px';
-    this.saveMarker();
+    app.saveMarker();
 };
 
 // fills in the course selection box according to mode and search query
-app.fillSearch = function(referrer) {
+app.fillSearch = function(referrer = null) {
     var selectBox = document.getElementById("selectBox");
     var val = selectBox.value;
     while(selectBox.lastChild.value != "")
 	selectBox.removeChild(selectBox.lastChild);
-    var courses = this.autoFilter(app.courses, referrer);
+    var courses = app.autoFilter(app.courses, referrer);
     for(var i = 0; i < courses.length; i++)
 	selectBox.appendChild(courses[i]);
     selectBox.value = val;
-    this.hideSearch();
+    app.hideSearch();
 };
 
 // returns the option list, dependent on mode
 // used to render course selection list
 app.autoFilter = function(courses, referrer){
-    this.mode = referrer ? referrer.value : this.mode;
-    return this.mode == "Manual" ? app.courses_manual : app.courses_auto;
+    app.mode = referrer ? referrer.value : app.mode;
+    return app.mode == "Manual" ? app.courses_manual : app.courses_auto;
 };
 
 // steps through each option in course selection box and hides it if the search string dictates
-app.hideSearch = function(referrer) {
+app.hideSearch = function(referrer = null) {
     if(referrer){
-	this.closed = referrer.checked;
+	app.closed = referrer.checked;
 	location.hash = app.generateHash(false); // update url for closed value
     }
     var options = document.getElementById("selectBox").children;
     var search = document.getElementById("searchBox").value.toLowerCase();
     for(var i=1; i < options.length; ++i)
-	options[i].style.display = this.filterSearch(app.courses[options[i].value], search) ? "" : "none";
+	options[i].style.display = app.filterSearch(app.courses[options[i].value], search) ? "" : "none";
 };
 
 // hideSearch but for a single option
 app.filterSearch = function(course, search) {
-    if(this.selected.indexOf(course) !== -1) return false;
-    if (!this.closed && (this.mode == "Manual" ? (course.seatsAvailable <= 0) : // if auto, check if it's possible to load in a full configuration
+    if(app.selected.indexOf(course) !== -1) return false;
+    if (!app.closed && (app.mode == "Manual" ? (course.seatsAvailable <= 0) : // if auto, check if it's possible to load in a full configuration
 			 course.home.alts // grab alts -> [type:[c, c, c], type:[c, c, c]]
 			 .map(altPack => altPack.map(c => c.seatsAvailable <= 0) // make alts into a closed field, value = closed -> [type:[true, false, false], type:[true, true, true]]
 			      .reduce((acc, cur) => acc && cur, true)) // then pack each alt into "is every course closed = true" -> [type:[false], type:[true]]
@@ -252,10 +252,10 @@ app.filterSearch = function(course, search) {
     )) // not found in search
 	return false; // this is done first because it's faster than constructing alts list
     
-    if(this.mode == "Automatic"){
+    if(app.mode == "Automatic"){
 	if(course.home.alts.reduce(function(acc_list, cur){ // look all of course alts
 	    return acc_list.concat(cur); // where cur is a typePack
-	}, []).some(alt => this.selected.includes(alt))) // and check if any overlap with selected
+	}, []).some(alt => app.selected.includes(alt))) // and check if any overlap with selected
 	    return false;
     }
     

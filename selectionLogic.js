@@ -97,36 +97,36 @@ app.autoConstruct = function(courses){
     if(courses[0] === undefined) return {get: function(i){return []}}; // no courses - go no further
     if(courses.slice(-1)[0] === undefined) // remove empty at end when no class is selected
 	courses.pop();
-    if(this.mode == "Manual"){
-	courses = this.closed ? courses : courses.filter(course => course.seatsAvailable > 0);
-	if("M"+courses.map(course => course.URLcode).join() == this.savedCourseGenerator)
+    if(app.mode == "Manual"){
+	courses = app.closed ? courses : courses.filter(course => course.seatsAvailable > 0);
+	if("M"+courses.map(course => course.URLcode).join() == app.savedCourseGenerator)
 	    return app.courses_generator; // don't have to run the calculation for every hour in every day
-	if(this.savedCourseGenerator[0] == "A" && this.course != null){ // switching from automatic to manual - update app.course
-	    if(this.courses_generator)
-		if(this.courses_generator.get(this.course_list_selection))
-		    courses = this.courses_generator.get(this.course_list_selection); // slight optimization for caching
-	    this.course = courses.filter(function(course){
+	if(app.savedCourseGenerator[0] == "A" && app.course != null){ // switching from automatic to manual - update app.course
+	    if(app.courses_generator)
+		if(app.courses_generator.get(app.course_list_selection))
+		    courses = app.courses_generator.get(app.course_list_selection); // slight optimization for caching
+	    app.course = courses.filter(function(course){
 		return course.home == app.courses[app.course].home;
 	    })[0].index; // replace app.course with the proper one automatically assigned
-	    document.getElementById("selectBox").value = this.course.toString();
+	    document.getElementById("selectBox").value = app.course.toString();
 	    //and fix a render bug
 	}
-	this.savedCourseGenerator = "M"+courses.map(el => el.URLcode).join();
-	this.courses_generator = {get: function(i){return courses;}};
-	return this.courses_generator;
+	app.savedCourseGenerator = "M"+courses.map(el => el.URLcode).join();
+	app.courses_generator = {get: function(i){return courses;}};
+	return app.courses_generator;
     }
     //automatic generator
-    if("A"+this.removeDuplicatesBy(course => course.home, courses).map(el => el.home.URLcode).filter(c => c).join() + (this.closed ? "C" : "") == this.savedCourseGenerator)
+    if("A"+app.removeDuplicatesBy(course => course.home, courses).map(el => el.home.URLcode).filter(c => c).join() + (app.closed ? "C" : "") == app.savedCourseGenerator)
 	return app.courses_generator; // don't have to run the calculation for every hour in every day
-    if(this.savedCourseGenerator[0] == "M" && this.course){ // switching from manual to automatic - update app.course
-	this.course = app.courses[this.course].home.index; // basically just a render bug
-	document.getElementById("selectBox").value = this.course.toString();
+    if(app.savedCourseGenerator[0] == "M" && app.course){ // switching from manual to automatic - update app.course
+	app.course = app.courses[app.course].home.index; // basically just a render bug
+	document.getElementById("selectBox").value = app.course.toString();
     }
-    this.course_list_selection = 0; // Reset on each new sched gen
+    app.course_list_selection = 0; // Reset on each new sched gen
     var range = document.getElementById('Range');
     range.max = 0;
     range.value = 0; // and reset render
-    app.courses_generator = new Lazy(this.cartesianProduct(this.removeDuplicatesBy(course => course.home, courses).reduce(function(acc, course){ // expands courses into all alt lists
+    app.courses_generator = new Lazy(app.cartesianProduct(app.removeDuplicatesBy(course => course.home, courses).reduce(function(acc, course){ // expands courses into all alt lists
 	course.home.alts.forEach(function(typePack){ // move in every typePack
 	    //first, we need to check if we need to move any courses to the front of their typePack
 	    //this makes auto<->manual switches behave as expected
@@ -139,8 +139,8 @@ app.autoConstruct = function(courses){
 	    acc.push(app.closed ? typePack : typePack.filter(c => c.seatsAvailable > 0)); // filter out courses that are closed
 	});
 	return acc;
-    }, []))).filter(this.schedCompat);
-    this.savedCourseGenerator = "A"+this.removeDuplicatesBy(course => course.home, courses).map(el => el.home.URLcode).filter(c => c).join() + (this.closed ? "C" : "");
+    }, []))).filter(app.schedCompat);
+    app.savedCourseGenerator = "A"+app.removeDuplicatesBy(course => course.home, courses).map(el => el.home.URLcode).filter(c => c).join() + (app.closed ? "C" : "");
     return app.courses_generator;
 };
 
@@ -182,7 +182,6 @@ app.cartesianProduct = function*(dimensions){
 	var schedule = new Array(dimensions.length-1);
 	for(var i=0; i<dimensions.length; ++i) // map stack address values to dimension address values
 	    schedule[i] = dimensions[i][stack[i]];
-	perm = schedule
 	yield schedule;
 	stack[0]++; // incriment stack
     }

@@ -34,83 +34,84 @@ clear()
 
 showExport()
 >generates and shows everything needed to share a schedule
- */
+*/
 
 // everything needed to drag-drop rearrange saves
 let animator = {
     element: undefined,
-    down: function(ref){ // used as onmousedown = animator.down(element);
-	return function(element){
-	    return function(e){
-		window.addEventListener('selectstart', animator.disableSelect); // don't question the weird closure
-		ref.element = element;
-		ref.element.style.position = "relative";
-		ref.startX = e.clientX;
-		ref.startY = e.clientY;
-		ref.startCenterX = ref.element.offsetLeft + ref.element.offsetWidth / 2;
-		ref.startCenterY = ref.element.offsetTop + ref.element.offsetHeight / 2;
-	    }
+    down: function(element){ // used as onmousedown = animator.down(element);
+	return function(e){
+	    window.addEventListener('selectstart', animator.disableSelect); // don't question the weird closure
+	    animator.element = element;
+	    animator.element.style.position = "relative";
+	    animator.startX = e.clientX;
+	    animator.startY = e.clientY;
+	    animator.startCenterX = animator.element.offsetLeft + animator.element.offsetWidth / 2;
+	    animator.startCenterY = animator.element.offsetTop + animator.element.offsetHeight / 2;
 	}
-    }(this),
+    },
     move: function(e){
-	if(this.element !== undefined){
-	    this.element.style.top = (e.clientY - this.startY).toString() + "px";
-	    this.element.style.left = (e.clientX - this.startX).toString() + "px";
+	if(animator.element !== undefined){
+	    animator.element.style.top = (e.clientY - animator.startY).toString() + "px";
+	    animator.element.style.left = (e.clientX - animator.startX).toString() + "px";
 
-	    let centerX = this.element.offsetLeft + this.element.offsetWidth / 2;
-	    if(this.element.nextSibling){
-		let centerX_next = this.element.nextSibling.offsetLeft + this.element.nextSibling.offsetWidth / 2;
+	    let centerX = animator.element.offsetLeft + animator.element.offsetWidth / 2;
+	    if(animator.element.nextSibling){
+		let centerX_next = animator.element.nextSibling.offsetLeft + animator.element.nextSibling.offsetWidth / 2;
 		if(centerX > centerX_next){
-		    this.element.parentNode.insertBefore(this.element.nextSibling, this.element);
-		    this.startX += (centerX-this.startCenterX)
-		    this.startCenterX = centerX;
-		    this.element.style.left = (e.clientX - this.startX).toString() + "px";
+		    animator.element.parentNode.insertBefore(animator.element.nextSibling, animator.element);
+		    animator.startX += (centerX-animator.startCenterX)
+		    animator.startCenterX = centerX;
+		    animator.element.style.left = (e.clientX - animator.startX).toString() + "px";
 		}
 	    }
-	    if(this.element.previousSibling){
-		let centerX_last = this.element.previousSibling.offsetLeft + this.element.previousSibling.offsetWidth / 2;
+	    if(animator.element.previousSibling){
+		let centerX_last = animator.element.previousSibling.offsetLeft + animator.element.previousSibling.offsetWidth / 2;
 		if(centerX < centerX_last){
-		    this.element.parentNode.insertBefore(this.element, this.element.previousSibling);
-		    this.startX += (centerX-this.startCenterX)
-		    this.startCenterX = centerX;
-		    this.element.style.left = (e.clientX - this.startX).toString() + "px";
+		    animator.element.parentNode.insertBefore(animator.element, animator.element.previousSibling);
+		    animator.startX += (centerX-animator.startCenterX)
+		    animator.startCenterX = centerX;
+		    animator.element.style.left = (e.clientX - animator.startX).toString() + "px";
 		}
 	    }
 	}
     },
     up: function(e){
-	if(this.element !== undefined){
+	if(animator.element !== undefined){
 	    window.removeEventListener('selectstart', animator.disableSelect);
-	    this.element.style.top = "auto";
-	    this.element.style.left = "auto";
-	    this.element.style.position = "static";
+	    animator.element.style.top = "auto";
+	    animator.element.style.left = "auto";
+	    animator.element.style.position = "static";
 
-	    if(Math.abs(e.clientX - this.startX) > 5 || Math.abs(e.clientY - this.startY) > 5){
-		//rearrange localStorage and then app.localStorage
-		var entries = Object.entries(JSON.parse(localStorage.schedules)); // [[name, hash], ...]
-		var order = this.element.parentNode.children;
+	    if(Math.abs(e.clientX - animator.startX) > 5 || Math.abs(e.clientY - animator.startY) > 5){
+		// need to rearrange localStorage.schedules
+		var ordered_saves = document.getElementById("saves").children;
 		var builder = [];
-		for(var i=0; i<order.length; ++i)
-		    builder.push(entries.filter(e => e[0] == order[i].innerText)[0]); // no two saves share a name
-		localStorage.schedules = JSON.stringify(Object.fromEntries(builder));
-		app.localStorage = JSON.parse(localStorage.schedules);
+		for(var i=0; i<ordered_saves.length; ++i){ // recalculate
+		    builder.push([ordered_saves[i].innerText, JSON.parse(window.localStorage.schedules)[ordered_saves[i].innerText]]);
+		}
+		var obj_builder = {};
+		for(var i=0; i<builder.length; ++i){
+		    obj_builder[builder[i][0]] = builder[i][1];
+		}
+		window.localStorage.schedules = JSON.stringify(obj_builder);
 	    } else { // normal click
-		var wrapper = this.element.parentElement; // because changed() looks at style
-		for(var i = 0; i < wrapper.children.length; ++i) // we need to do this twice in case load gets interrupted
+		var wrapper = animator.element.parentElement; // because changed() looks at style
+		for(var i = 0; i < wrapper.children.length; ++i) // we need to do animator twice in case load gets interrupted
 		    wrapper.children[i].classList.remove("preselect");
-		this.element.classList.add("preselect");
-		var success = app.load(this.element.innerText); // we need to update look after
+		animator.element.classList.add("preselect");
+		var success = app.load(animator.element.innerText); // we need to update look after
 		for(var i = 0; i < wrapper.children.length; ++i)
 		    wrapper.children[i].classList.remove("preselect");
 		if(success){ // else user declined
 		    for(var i = 0; i < wrapper.children.length; ++i)
 			wrapper.children[i].classList.remove("selected");
-		    this.element.classList.add("selected");
+		    animator.element.classList.add("selected");
 		    app.saveMarker();
 		}
 	    }
 	    
-	    this.element = undefined;
+	    animator.element = undefined;
 	}
     },
     disableSelect: function(event){
@@ -122,19 +123,19 @@ window.onmousemove = animator.move; // ...on element for one frame
 
 // shows/hides everything in <div class="floatRight"> tag
 app.saveMarker = function() {
-    document.getElementById("marker-save").style.display = this.changed() && this.selected.length ? "" : "none";
-    document.getElementById("marker-discard").style.display = this.changed() && this.currentstorage && this.selected.length ? "" : "none";
-    document.getElementById("marker-saveAsNew").style.display = this.currentstorage ? "" : "none";
-    document.getElementById("marker-delete").style.display = this.currentstorage ? "" : "none";
-    document.getElementById("marker-export").style.display = this.selected.length ? "" : "none";
-    document.getElementById("marker-new").style.display = (this.currentstorage || this.selected.length) ? "" : "none";
+    document.getElementById("marker-save").style.display = app.changed() && app.selected.length ? "" : "none";
+    document.getElementById("marker-discard").style.display = app.changed() && app.currentstorage && app.selected.length ? "" : "none";
+    document.getElementById("marker-saveAsNew").style.display = app.currentstorage ? "" : "none";
+    document.getElementById("marker-delete").style.display = app.currentstorage ? "" : "none";
+    document.getElementById("marker-export").style.display = app.selected.length ? "" : "none";
+    document.getElementById("marker-new").style.display = (app.currentstorage || app.selected.length) ? "" : "none";
 };
 
 // renders in all the saved schedules buttons into the <div id="saves"> tag
 app.updateSaved = function() {
-    if(!this.localStorage)
+    var schedules = Object.keys(JSON.parse(window.localStorage.schedules));
+    if(!schedules.length)
 	return;
-    var schedules = Object.keys(app.localStorage);
     var saves = document.getElementById("saves");
     for(var i=0; i<saves.children.length; ++i){
 	var save = saves.children[i];
@@ -163,105 +164,97 @@ app.updateSaved = function() {
 	else
 	    option.classList.remove("selected");
     }
-    this.saveMarker();
+    app.saveMarker();
 };
 
 // save schedule
 app.save = function() {
-    //legacy GA
-    
-    ga('send', 'event', 'schedule', 'save');
-    
-    if(!this.currentstorage) {
+    if(!app.currentstorage) {
         var name = window.prompt("Please enter a name for the schedule");
         if(!name) return;
-        this.currentstorage = name;
+        app.currentstorage = name;
     }
+    //legacy GA                      
+    ga('send', 'event', 'schedule', 'save');
     
-    if(!localStorage.schedules) localStorage.setItem('schedules', JSON.stringify({}));
-    var schedules = JSON.parse(localStorage.schedules);
+    if(!window.localStorage.schedules) window.localStorage.setItem('schedules', '{}');
+    var schedules = JSON.parse(window.localStorage.schedules);
     
-    schedules[this.currentstorage] = this.generateHash(true);
-    localStorage.setItem('schedules', JSON.stringify(schedules));
-    this.localStorage = schedules;
-    localStorage.setItem('lastSaved', this.generateHash(false) + "!" + this.currentstorage);
+    schedules[app.currentstorage] = app.generateHash(true);
+    window.localStorage.setItem('schedules', JSON.stringify(schedules));
+    window.localStorage.setItem('lastSaved', app.generateHash(false) + "!" + app.currentstorage);
     
-    this.updateSaved();
+    app.updateSaved();
 };
 
 // load schedule
 app.load = function(schedule) {
-    if(this.changed())
+    if(app.changed())
         if (!window.confirm("Are you sure you want to discard your changes?"))
 	    return false;
-    
-    //legacy GA
+    //legacy GA                             
     ga('send', 'event', 'schedule', 'load');
-    
-    this.currentstorage = schedule;
-    document.getElementById("notes").value = this.localStorage[schedule].split("+")[1];
+    app.currentstorage = schedule;
+    document.getElementById("notes").value = JSON.parse(window.localStorage.schedules)[schedule].split("+")[1];
     app.disableOnHashChange = true;
-    location.hash = this.localStorage[schedule].split("+")[0];
-    var currentTerm = this.getHash().split("=")[0].substr(1);
-    if ((index = this.terms.map(term => term.URLcode).indexOf(currentTerm)) > -1){ // make sure term is valid
-        if(this.term != this.terms[index].URLcode) { // need to switch term
-	    this.term = this.terms[index].URLcode;
-	    this.updateTerms();
-	    this.changedTerm(true);
+    location.hash = JSON.parse(window.localStorage.schedules)[schedule].split("+")[0];
+    var currentTerm = app.getHash().split("=")[0].substr(1);
+    var foundIdx = app.terms.map(term => term.URLcode).indexOf(currentTerm);
+    if (foundIdx > -1){ // make sure term is valid
+        if(app.term != app.terms[foundIdx].URLcode) { // need to switch term
+	    app.term = app.terms[foundIdx].URLcode;
+	    app.updateTerms();
+	    app.changedTerm(true);
         } else { // already on correct term
-	    this.course = null;
+	    app.course = null;
 	    document.getElementById("selectBox").value = "";
-	    this.updateTerms();
-	    this.loadHash(); // just an optimization hack - function found in UIright.js
+	    app.updateTerms();
+	    app.loadHash(); // just an optimization hack - function found in UIright.js
         }
     }
-    this.updateNotes(document.getElementById("notes")); // fix style in case notes have been cached
-    this.fillSchedule();
-    localStorage.setItem('lastSaved', this.generateHash(false) + "!" + this.currentstorage);
+    app.updateNotes(document.getElementById("notes")); // fix style in case notes have been cached
+    app.fillSchedule();
+    window.localStorage.setItem('lastSaved', app.generateHash(false) + "!" + app.currentstorage);
     return true;
 };
 
 // discard changes to a schedule
 app.discard = function() {
-    if(this.changed())
+    if(app.changed())
 	if (!window.confirm("Are you sure you want to discard your changes?"))
 	    return;
-
-    //legacy GA
+    //legacy GA                                
     ga('send', 'event', 'schedule', 'discard');
-    
-    var schedule = this.currentstorage;
-    this.currentstorage = null;
-    this.load(schedule);
-    localStorage.setItem('lastSaved', JSON.stringify({}));
+    var schedule = app.currentstorage;
+    app.currentstorage = null;
+    app.load(schedule);
+    window.localStorage.setItem('lastSaved', "{}");
 };
 
 // creates a new schedule from an old schedule
 app.saveNew = function() {
     ga('send', 'event', 'schedule', 'save-new');
-    this.currentstorage = null;
-    this.save();
+    app.currentstorage = null;
+    app.save();
 };
 
 // deletes a saved schedule
 app.deleteSchedule = function() {
-    if (window.confirm("Are you sure you want to delete the schedule " + this.currentstorage + "?")) {
-        ga('send', 'event', 'schedule', 'delete');
-        var schedules = JSON.parse(localStorage.schedules);
-        delete schedules[this.currentstorage];
-        localStorage.setItem('schedules', JSON.stringify(schedules));
-        this.localStorage = schedules;
-        this.clear(true);
-	this.updateSaved();
-	this.fillSchedule();
-	localStorage.setItem('lastSaved', JSON.stringify({}));
+    if (window.confirm("Are you sure you want to delete the schedule " + app.currentstorage + "?")) {
+        var schedules = JSON.parse(window.localStorage.schedules);
+        delete schedules[app.currentstorage];
+        window.localStorage.setItem('schedules', JSON.stringify(schedules));
+        app.clear(true);
+	app.updateSaved();
+	app.fillSchedule();
+	window.localStorage.setItem('lastSaved', "{}");
     }
 };
 
 // clears the board and deselects a saved schedule, if selected
 app.clear = function(bypass = false, share = false) {
     // bypass is true when recieving a shared schedule or when deleting a schedule (the latter so messages make sense to user)
-    if(!bypass && this.changed()){ // don't confirm on bypass
+    if(!bypass && app.changed()){ // don't confirm on bypass
         if (!window.confirm("Are you sure you want to discard your changes?")){
 	    location.hash = app.generateHash(false);
 	    return false;
@@ -269,22 +262,22 @@ app.clear = function(bypass = false, share = false) {
     }
     ga('send', 'event', 'schedule', 'new');
     document.getElementById("selectBox").value = "";
-    this.course_list_selection = 0;
+    app.course_list_selection = 0;
     var range = document.getElementById('Range');
     range.max = 0;
     range.value = 0;
     app.courses_generator = null;
-    this.savedCourseGenerator = "";
+    app.savedCourseGenerator = "";
     if(!share) // on share, keep hash the same
 	location.hash = "";
     document.getElementById("notes").value = "";
-    this.course = null;
-    this.selected = [];
-    this.currentstorage = null;
-    this.updateSaved();
-    this.fillSchedule();
-    this.hideSearch();
-    localStorage.setItem('lastSaved', JSON.stringify({}));
+    app.course = null;
+    app.selected = [];
+    app.currentstorage = null;
+    app.updateSaved();
+    app.fillSchedule();
+    app.hideSearch();
+    window.localStorage.setItem('lastSaved', "{}");
     return true;
 };
 
@@ -292,5 +285,5 @@ app.clear = function(bypass = false, share = false) {
 app.showExport = function(){
     document.getElementById("export").style.display = "";
     document.getElementById("export-link").value = location.href;
-    document.getElementById("export-text").value = this.selected.map(function(c) { return c.courseRegistrationCode + ': ' + c.subject + ' ' + c.courseNumber }).join('\n');
+    document.getElementById("export-text").value = app.selected.map(function(c) { return c.courseRegistrationCode + ': ' + c.subject + ' ' + c.courseNumber }).join('\n');
 };

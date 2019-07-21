@@ -37,9 +37,6 @@ app.hovering = [];
 // the selected save on savebar
 // see UIsavebar.js
 app.currentstorage = null;
-// stringified, localized version of window.localStorage - should be phased out soon in favor of window.localStorage
-// see UIsavebar.js
-app.localStorage = [];
 // object values for all terms available to load
 // see UIright.js
 app.terms = [];

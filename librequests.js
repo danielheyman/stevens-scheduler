@@ -118,9 +118,9 @@ class Searcher{
 	if(this.xhr || this.done) // don't restart if not needed
 	    return;
 	var GETPOST = {};
-	GETPOST.postData = null;
-	GETPOST.openMethod = null;
-	GETPOST.url = null;
+	GETPOST.postData = "0"; // you might have no post data, but never an unset property (no "=" in postData)
+	GETPOST.openMethod = "";
+	GETPOST.url = "";
 	switch(this.type){
 	case "prime":
 	    app_config.URLprime(GETPOST, this.term);
@@ -144,17 +144,19 @@ class Searcher{
 	    console.error("Invalid type in Searcher");
 	}
 	// check to make sure config.js has set GETPOST correctly
-	if(GETPOST.url == null)
-	    console.error("url not set for request of type " + this.type + ". There's an erorr in config.js");
-	if(GETPOST.url == "" && ((this.type == "prime") || (this.type == "count"))){
-	    this.xhr = null;
-	    this.done = true;
-	    callback(false); // false -> let hedRequest know we're not counting anything
-	    return; // in the case where a college's servers are designed well and we don't need to check these
+	if(GETPOST.url == ""){
+	    if((this.type == "prime") || (this.type == "count")){
+		this.xhr = null; // don't always need to do this
+		this.done = true;
+		callback(false); // false -> let hedRequest know we're not counting anything
+		return; // in the case where a college's servers are designed well and we don't need to check these
+	    } else {
+		console.error("url not set for request of type " + this.type + ". There's an erorr in config.js");
+	    }
 	}
-	if(GETPOST.openMethod == null)
+	if(GETPOST.openMethod == "")
 	    console.error("openMethod not set for request of type " + this.type + ". There's an erorr in config.js");
-	if(GETPOST.openMethod == "POST" && GETPOST.postData == null)
+	if(GETPOST.openMethod == "POST" && GETPOST.postData == "0")
 	    console.error("postData is missing for POST request of type " + this.type + ". There's an erorr in config.js");
 	// start making the request
 	this.xhr = new XMLHttpRequest();
@@ -232,6 +234,7 @@ class TermManager{
 	this.requests = []; // all course data requests
 	this.headRequest = null; // request(s) needed for cookie auth
 	this.main_callback_wrapper = {callback: null}; // MUST be placed in an object because JS is weird
+	this.totalCount = 0;
     }
     stop(){ // abort all requests and prime for a restart
 	if(this.done) // why stop something that's already done?
@@ -263,7 +266,7 @@ class TermManager{
 		    var loadedAmount = TermManager_ref.data.reduce(function(acc, cur){ // check how many courses we have loaded so far
 			return acc + cur.courses.length; // by summing them all up
 		    }, 0);
-		    if(TermManager_ref.totalCount !== undefined){
+		    if(TermManager_ref.totalCount !== 0){
 			app.percent = loadedAmount.toString() + "/" + TermManager_ref.totalCount.toString();
 			app.updatePercent();
 		    }
@@ -277,11 +280,11 @@ class TermManager{
 				return acc + cur.courses.length; // by summing them all up
 			    }, 0);
 			    
-			    if(TermManager_ref.totalCount !== undefined){
+			    if(TermManager_ref.totalCount !== 0){
 				app.percent = loadedAmount.toString() + "/" + TermManager_ref.totalCount.toString();
 				app.updatePercent();
 			    }
-			    if((TermManager_ref.totalCount === undefined) || (loadedAmount >= app_config.test_percent_cap*TermManager_ref.totalCount/100)){ // and see if we've got enough
+			    if((TermManager_ref.totalCount === 0) || (loadedAmount >= app_config.test_percent_cap*TermManager_ref.totalCount/100)){ // and see if we've got enough
 				app.percent += "\nProcessng courses...";
 				app.updatePercent();
 				// if so, process data and mark term complete
@@ -308,7 +311,7 @@ class TermManager{
 				var saveTerms = [];
 				// look through each save and grab their terms
 				for(var i=0; i<saves.length; ++i)
-				    saveTerms.push(app.localStorage[saves[i].innerText].split("=")[0]);
+				    saveTerms.push(JSON.parse(window.localStorage.schedules)[saves[i].innerText].split("=")[0]);
 				// then look through loaded terms and grab their terms
 				var completedTerms = app.termCacher.termManagers.filter(manager => manager.done).map(manager => manager.term);
 				// then find the first save term that doesn't have a fully loaded term
