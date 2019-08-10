@@ -2,7 +2,7 @@
 This file contains code to fill tedious tables so that index.html isn't unreadably long
 It also does some config things to make developing for other colleges easier
 
-I use anon functions so they don't stick around in namespace
+Anon functions are used when needed so things don't pollute the global namespace
 */
 
 //config.js stuff

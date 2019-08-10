@@ -12,10 +12,12 @@ This should be the last script to be loaded, as it depends on all other scripts 
 if(window.localStorage.lastSaved == undefined) window.localStorage.lastSaved = "";
 
 //style first
-if(window.localStorage.darkMode == undefined) window.localStorage.darkMode = "false";
-var styleSlider = document.getElementById("styleSlider");
-styleSlider.checked = window.localStorage.darkMode == "true";
-change_style(styleSlider);
+(function(){
+    if(window.localStorage.darkMode == undefined) window.localStorage.darkMode = "false";
+    var styleSlider = document.getElementById("styleSlider");
+    styleSlider.checked = window.localStorage.darkMode == "true";
+    change_style(styleSlider);
+})();
 
 //then check browser cache for radio buttons and checkboxes, update accordingly
 app.mode = document.getElementById("Manual").checked ? "Manual" : "Automatic";
@@ -67,7 +69,7 @@ let longpress = { // namespace reasons
 	clearTimeout(longpress.waiter);
 	longpress.waiter = null;
     }
-}
+};
 
 // Listening for the mouse and touch events    
 nextButton.addEventListener("mousedown", longpress.pressingDown, false);
@@ -80,7 +82,7 @@ nextButton.addEventListener("touchend", longpress.notPressingDown, false);
 
 // SIT only
 // HeadUser - will throw a warning when not on the correct domain (during testing)
-(function () { var hu = document.createElement("script"); hu.type = "text/javascript"; hu.async = true; hu.src = "//www.heeduser.com/supfiles/Script/widget.js"; var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(hu, s); })()
+(function () { var hu = document.createElement("script"); hu.type = "text/javascript"; hu.async = true; hu.src = "//www.heeduser.com/supfiles/Script/widget.js"; var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(hu, s); })();
 var _heeduser = {
     type: "button",
     community: "sitscheduler",
@@ -89,6 +91,6 @@ var _heeduser = {
     color: "#202021",
     widget_layout: "full",
     sso_token: ""
-}
+};
 var heeduser_url = _heeduser.url + "/FeedbackWidget/Widget.aspx?sso_token=" + encodeURIComponent(_heeduser.sso_token);
 document.getElementById("feedback").innerHTML = '<a id="heeduser_wb" href="JavaScript:heeduser_openwidget(heeduser_url,\'' + _heeduser.widget_layout + '\')">Leave your feedback!</a>';

@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html>
   <head>
+	
     <meta charset="utf-8">
     <meta name="description" content="Course Scheduler for Stevens Institute of Technology. Create, save, share, and export all your schedule combinations.">
-    <script defer type="text/javascript" src="./min.js?v=0.9.1" charset="utf-8"></script>
+    <script defer type="text/javascript" src="./min.js?v=0.10.0" charset="utf-8"></script>
     
     <!-- minified into min.js
     <script defer type="text/javascript" src="./GA.js?v=0.8.1" charset="utf-8"></script>
@@ -87,7 +88,6 @@
 	    <input id="Range" oninput="app.fillSchedule(this);" type="range" min="0" max="0" style="width: 66%;">
 	    <button id="nextButton" style="width: 30%;float: right;"></button>
 	  </div>
-	  <br>
 	  <span class="title">Term</span>
 	  <select onchange="app.changedTerm(false, this)" id="termSelect">
 	    <option value="" selected hidden disabled></option>
@@ -135,7 +135,7 @@
 	  * Open seats can take up to two hours to update during peak registration hours
 
 	  <div id="feedback"></div>
-	  
+
 	</div>
       </div>
 

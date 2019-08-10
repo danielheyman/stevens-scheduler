@@ -36,6 +36,19 @@ showExport()
 >generates and shows everything needed to share a schedule
 */
 
+/**
+ * animator
+ *
+ * @type {!Object}
+ *
+ * @property {?Element}     element        element to be acted on
+ * @property {function(Object)} down           mouse controls
+ * @property {function(Object)} move           mouse controls
+ * @property {function(Object)} up             mouse controls
+ * @property {function(Object)} disableSelect  clear movable element
+ *
+ * @constant
+ */
 // everything needed to drag-drop rearrange saves
 let animator = {
     element: undefined,
@@ -48,7 +61,7 @@ let animator = {
 	    animator.startY = e.clientY;
 	    animator.startCenterX = animator.element.offsetLeft + animator.element.offsetWidth / 2;
 	    animator.startCenterY = animator.element.offsetTop + animator.element.offsetHeight / 2;
-	}
+	};
     },
     move: function(e){
 	if(animator.element !== undefined){
@@ -60,7 +73,7 @@ let animator = {
 		let centerX_next = animator.element.nextSibling.offsetLeft + animator.element.nextSibling.offsetWidth / 2;
 		if(centerX > centerX_next){
 		    animator.element.parentNode.insertBefore(animator.element.nextSibling, animator.element);
-		    animator.startX += (centerX-animator.startCenterX)
+		    animator.startX += (centerX-animator.startCenterX);
 		    animator.startCenterX = centerX;
 		    animator.element.style.left = (e.clientX - animator.startX).toString() + "px";
 		}
@@ -69,7 +82,7 @@ let animator = {
 		let centerX_last = animator.element.previousSibling.offsetLeft + animator.element.previousSibling.offsetWidth / 2;
 		if(centerX < centerX_last){
 		    animator.element.parentNode.insertBefore(animator.element, animator.element.previousSibling);
-		    animator.startX += (centerX-animator.startCenterX)
+		    animator.startX += (centerX-animator.startCenterX);
 		    animator.startCenterX = centerX;
 		    animator.element.style.left = (e.clientX - animator.startX).toString() + "px";
 		}
@@ -121,7 +134,14 @@ let animator = {
 window.onmouseup = animator.up; // we need to go off the window in case user moves too fast where mouse isn't...
 window.onmousemove = animator.move; // ...on element for one frame
 
-// shows/hides everything in <div class="floatRight"> tag
+/**
+ * app.saveMarker()
+ *
+ * shows/hides everything in <div class="floatRight"> tag
+ *
+ * @memberof app
+ * @constant
+ */
 app.saveMarker = function() {
     document.getElementById("marker-save").style.display = app.changed() && app.selected.length ? "" : "none";
     document.getElementById("marker-discard").style.display = app.changed() && app.currentstorage && app.selected.length ? "" : "none";
@@ -131,9 +151,16 @@ app.saveMarker = function() {
     document.getElementById("marker-new").style.display = (app.currentstorage || app.selected.length) ? "" : "none";
 };
 
-// renders in all the saved schedules buttons into the <div id="saves"> tag
+/**
+ * app.updateSaved()
+ *
+ * renders in all the saved schedules buttons into the <div id="saves"> tag
+ *
+ * @memberof app
+ * @constant
+ */
 app.updateSaved = function() {
-    var schedules = Object.keys(JSON.parse(window.localStorage.schedules));
+    var schedules = Object['keys'](JSON.parse(window.localStorage.schedules)); // shut up closure compiler
     if(!schedules.length)
 	return;
     var saves = document.getElementById("saves");
@@ -167,15 +194,20 @@ app.updateSaved = function() {
     app.saveMarker();
 };
 
-// save schedule
+/**
+ * app.save()
+ *
+ * save active schedule
+ *
+ * @memberof app
+ * @constant
+ */
 app.save = function() {
     if(!app.currentstorage) {
         var name = window.prompt("Please enter a name for the schedule");
         if(!name) return;
         app.currentstorage = name;
     }
-    //legacy GA                      
-    ga('send', 'event', 'schedule', 'save');
     
     if(!window.localStorage.schedules) window.localStorage.setItem('schedules', '{}');
     var schedules = JSON.parse(window.localStorage.schedules);
@@ -187,12 +219,25 @@ app.save = function() {
     app.updateSaved();
 };
 
-// load schedule
+/**
+ * app.load()
+ *
+ * loads schedule from storageString
+ *
+ * @param   {?string} schedule  title of schedule
+ *
+ * @returns {boolean}           is the user okay with discarding changes?
+ *
+ * @memberof app
+ * @constant
+ */
 app.load = function(schedule) {
+    if(schedule === null)
+	return false;
     if(app.changed())
         if (!window.confirm("Are you sure you want to discard your changes?"))
 	    return false;
-    //legacy GA                             
+    //legacy GA
     ga('send', 'event', 'schedule', 'load');
     app.currentstorage = schedule;
     document.getElementById("notes").value = JSON.parse(window.localStorage.schedules)[schedule].split("+")[1];
@@ -218,7 +263,14 @@ app.load = function(schedule) {
     return true;
 };
 
-// discard changes to a schedule
+/**
+ * app.discard()
+ *
+ * discard changes to active schedule
+ *
+ * @memberof app
+ * @constant
+ */
 app.discard = function() {
     if(app.changed())
 	if (!window.confirm("Are you sure you want to discard your changes?"))
@@ -231,14 +283,28 @@ app.discard = function() {
     window.localStorage.setItem('lastSaved', "{}");
 };
 
-// creates a new schedule from an old schedule
+/**
+ * app.saveNew()
+ *
+ * creates a new schedule from an old schedule
+ *
+ * @memberof app
+ * @constant
+ */
 app.saveNew = function() {
     ga('send', 'event', 'schedule', 'save-new');
     app.currentstorage = null;
     app.save();
 };
 
-// deletes a saved schedule
+/**
+ * app.deleteSchedule()
+ *
+ * deletes a saved schedule
+ *
+ * @memberof app
+ * @constant
+ */
 app.deleteSchedule = function() {
     if (window.confirm("Are you sure you want to delete the schedule " + app.currentstorage + "?")) {
         var schedules = JSON.parse(window.localStorage.schedules);
@@ -251,7 +317,19 @@ app.deleteSchedule = function() {
     }
 };
 
-// clears the board and deselects a saved schedule, if selected
+/**
+ * app.clear(bypass = false, share = false)
+ *
+ * clears the board and deselects a saved schedule, if selected
+ *
+ * @param {boolean} [bypass]  bypass conformation - works around double conformations
+ * @param {boolean} [share]   coming from a share - do we need to update the hash?
+ *
+ * @returns {boolean}         is the user okay with discarding changes?
+ *
+ * @memberof app
+ * @constant
+ */
 app.clear = function(bypass = false, share = false) {
     // bypass is true when recieving a shared schedule or when deleting a schedule (the latter so messages make sense to user)
     if(!bypass && app.changed()){ // don't confirm on bypass
@@ -281,9 +359,16 @@ app.clear = function(bypass = false, share = false) {
     return true;
 };
 
-// generates everything needed to share a schedule
+/**
+ * app.showExport()
+ *
+ * generates everything needed to share a schedule and shows it in the foreground
+ *
+ * @memberof app
+ * @constant
+ */
 app.showExport = function(){
     document.getElementById("export").style.display = "";
     document.getElementById("export-link").value = location.href;
-    document.getElementById("export-text").value = app.selected.map(function(c) { return c.courseRegistrationCode + ': ' + c.subject + ' ' + c.courseNumber }).join('\n');
+    document.getElementById("export-text").value = app.selected.map(c => c.courseRegistrationCode + ': ' + c.subject + ' ' + c.courseNumber).join('\n');
 };

@@ -3,35 +3,47 @@ Provides an interface for talking to the course data server
 
 In this file:
 
-string server(string)
+server(string)
 >URL prefix for all requests
 
-void preProcessDataPack(dataPack_object)
+preProcessDataPack(dataPack_object)
 >Takes a freshly loaded JSON object for a large course request and strips out unwanted data
 >Uses references to do this in place
 
-[courses_object...] postProcessCourses([courses_object...])
+postProcessCourses([courses_object...])
 >For each course in the list, remove or modify it to fit in line
+
+Searcher
+
+TermManager
+
+TermCacher
 */
 
-// Prepends common URL prefix
-let server = function(h) { return app_config.URLprefix + h; };
-
-// after a term is fully loaded, all courses are extracted and ran through here
-// a few important steps are taken:
-// 1) if a course has no meeting times, get rid of it
-// 2) if a course is a honors section, remove the honors in the scheduleTypeDescription
-//    this allows honors sections to still appear as honors but render like normal courses
-// 3) build alts list
-//    this step is important for automatic mode
-//    this will take all classes with the same number (ex: MATH 101)
-//    then seperate them into lectures, labs, recitation, workshops, ect.
-//    and place those in a list of [[lecture...],[lab...],[rec...]]
-//    then, link that list in the FIRST course of that name
-//    and for all other courses, add a .home member which points to that first course
-// 4) add an index to each course
-//    this is done because HTML <selection>s don't support objects in <option>s
-//    so, instead we store the index of the course and when we pull it out, look in the big list by index
+/**
+ * postProcessCourses(courses)
+ * 
+ * after a term is fully loaded, all courses are extracted and ran through here				 
+ * a few important steps are taken:									 
+ * 1) if a course has no meeting times, get rid of it							 
+ * 2) if a course is a honors section, remove the honors in the scheduleTypeDescription			 
+ *    this allows honors sections to still appear as honors but render like normal courses		 
+ * 3) build alts list											 
+ *    this step is important for automatic mode								 
+ *    this will take all classes with the same number (ex: MATH 101)					 
+ *    then seperate them into lectures, labs, recitation, workshops, ect.				 
+ *    and place those in a list of [[lecture...],[lab...],[rec...]]					 
+ *    then, link that list in the FIRST course of that name						 
+ *    and for all other courses, add a .home member which points to that first course			 
+ * 4) add an index to each course									 
+ *    this is done because HTML <selection>s don't support objects in <option>s				 
+ *    so, instead we store the index of the course and when we pull it out, look in the big list by index
+ * 
+ * @param   {!Array<!Course>} courses    courses to process
+ * @returns {!Array<!Course>}            processed courses
+ *
+ * @constant
+ */
 let postProcessCourses = function(courses){
     return courses
 	.filter(function(course){ // remove courses that don't have a scheduled time / can't be shown on the board
@@ -82,38 +94,55 @@ let postProcessCourses = function(courses){
 	    course.index = i;
 	    return course;
 	});
-}
+};
 
-// A wrapper around a single XMLhttp request
-// supports starting, stopping, and intelligent data retrieval
-//
-// methods:
-//   constructor(type, term = null, offset = null, size = null)
-//   >Sets up the Searcher object with data.
-//   >>type is a string, see switch case in .start() for types
-//   >>term is the term string code for the URL
-//   >>offset is used in loading courses. If there's a master list of courses, you're starting at this index
-//   >>size of a course list request. Start at offset's index, and end at (offset+size)'s index
-//
-//   start(callback = null)
-//   >starts the request
-//   >>callback(loadedData) is a function which will be executed upon completion
-//   >if already loaded, callback is executed immediatly
-//
-//   stop()
-//   >aborts the pending request
+
+/**
+ * Searcher
+ *
+ * A class wrapper around a single XMLhttp request
+ * supports starting, stopping, and intelligent data retrieval
+ *
+ * methods:
+ *   constructor(type, term = null, offset = null, size = null)
+ *   start(callback = null
+ *   stop()
+ *
+ * @class
+ * @constant
+ */
 class Searcher{
-    // A wrapper to perform a single XMLHttpRequest
-    // Allows for stopping and starting of request
-    constructor(type, term = null, offset = null, size = null){ // when offset == null or isn't provided, just prime
+    /**
+     * constructor
+     *
+     * Sets up the Searcher object with data.
+     *
+     * @param {string}  type     Type of request: "prime", "count", "courses", "terms", "desc", and "test"
+     * @param {string} [term]    Which term to be concerned with - URL code
+     * @param {string} [offset]  If type=courses, offset from start of list. If type=desc, course URL code
+     * @param {number} [size]    If type=courses, the size of request (how many courses)
+     *
+     * @constant
+     */
+    constructor(type, term = "", offset = "", size = 0){
 	this.term = term;
 	this.data = [];
 	this.done = false;
-	this.offset = offset; // if type == desc, offset is interpreted as the course reference number
+	this.offset = offset;
 	this.size = size;
 	this.xhr = null;
 	this.type = type;
     }
+    /**
+     * start(callback = null)
+     * 
+     * starts the request
+     * if already loaded, callback is executed immediatly
+     *
+     * @param {?function(string)|?function(boolean)} [callback]  function which will be executed upon completion
+     *
+     * @constant
+     */
     start(callback = null){
 	if(this.xhr || this.done) // don't restart if not needed
 	    return;
@@ -129,13 +158,13 @@ class Searcher{
 	    app_config.URLgetCourseTotalCount(GETPOST, this.term);
 	    break;
 	case "courses":
-	    app_config.URLgetCourses(GETPOST, this.term, this.offset, this.size);
+	    app_config.URLgetCourses(GETPOST, this.term, this.offset.toString(), this.size);
 	    break;
 	case "terms":
 	    app_config.URLgetTerms(GETPOST);
 	    break;
 	case "desc":
-	    app_config.URLgetDescription(GETPOST, this.term, this.offset);
+	    app_config.URLgetDescription(GETPOST, this.term, this.offset.toString());
 	    break;
 	case "test":
 	    app_config.URLtest(GETPOST);
@@ -192,7 +221,7 @@ class Searcher{
 		else if(this.status != 200 && this.status != 0){
 		    console.error("A network request failed with code " + this.status.toString()); // might need in the future for testing errors
 		}
-	    }
+	    };
 	}(this);
 	this.xhr.open(GETPOST.openMethod, GETPOST.url); // local sync
 	this.xhr.withCredentials = true; // needed for auth cookies
@@ -200,6 +229,13 @@ class Searcher{
 	    this.xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded'); // needed for submitting form data - posts and descriptions
 	this.xhr.send(GETPOST.postData);
     }
+    /**
+     * stop()
+     *
+     * aborts the pending request and clears callback
+     *
+     * @constant
+     */
     stop(){
 	if(!this.xhr || this.done) // can't stop what's not there to stop
 	    return;
@@ -208,25 +244,32 @@ class Searcher{
     }
 }
 
-// A wrapper around an entire term's worth of Searcher requests
-// .start() will handle any cookie based requests, and then load all courses
-// then it will fire callback
-// A TermManager will also cache partially loaded results if asked to stop
-// then it will pick back up where it left off when started again
-//
-// methods:
-//   constructor(term)
-//   >sets up obect
-//   >>term is the URL string term code
-//
-//   start(callback)
-//   >starts loading a term
-//   >>callback(courses) will fire after the entire term is loaded
-//   >if term is already loaded, just fire the callback
-//
-//   stop()
-//   >aborts all pending Searcher requests
+
+/**
+ * TermManager
+ *
+ * A wrapper around an entire term's worth of Searcher requests
+ * .start() will handle any cookie based requests, and then load all courses
+ * then it will fire callback
+ * A TermManager will also cache partially loaded results if asked to stop
+ * then it will pick back up where it left off when started again
+ *
+ * methods:
+ *   constructor(term)
+ *   start(callback)
+ *   stop()
+ *
+ * @class
+ * @constant
+ */
 class TermManager{
+    /**
+     * constructor
+     *
+     * sets up obect
+     *
+     * @param {string} term  URL string term code
+     */
     constructor(term){
 	this.term = term;
 	this.data = []; // partially cached data, or a list of all courses when all done
@@ -236,18 +279,15 @@ class TermManager{
 	this.main_callback_wrapper = {callback: null}; // MUST be placed in an object because JS is weird
 	this.totalCount = 0;
     }
-    stop(){ // abort all requests and prime for a restart
-	if(this.done) // why stop something that's already done?
-	    return;
-	this.main_callback_wrapper.callback = null;
-	if(this.headRequest){
-	    this.headRequest.stop();
-	    this.headRequest = null; // in case we stopped during a head request
-	}
-	this.requests.forEach(function(request){
-	    request.stop(); // stop each one
-	});
-    }
+    /**
+     * start(main_callback, bypass = false)
+     *
+     * starts loading a term
+     * if term is already loaded, just fire the callback
+     * 
+     * @param {?function(*)} main_callback  will fire after the entire term is loaded
+     * @param {boolean}             [bypass]       internal use only - bypass head checks
+     */
     start(main_callback, bypass = false){ // construct all requests and send, or if already constructed just send
 	// bypass is only used for recursing from inside here
 	this.main_callback_wrapper.callback = main_callback;
@@ -336,7 +376,7 @@ class TermManager{
 			                            // need to count and all courses will be in 1 request
 			    app.percent = "";
 			    app.updatePercent();
-			    var searcher = new Searcher("courses", TermManager_ref.term, 0, 0);
+			    var searcher = new Searcher("courses", TermManager_ref.term, "0", 0);
 			    searcher.offset = 0;
 			    TermManager_ref.requests.push(searcher);
 			    TermManager_ref.start(TermManager_ref.main_callback_wrapper.callback, true);
@@ -359,7 +399,7 @@ class TermManager{
 			}
 		    });
 		}
-	    }
+	    };
 	}(this);
 	
 	if(bypass){ // recursing -- don't bother POSTing again
@@ -369,26 +409,54 @@ class TermManager{
 	    this.headRequest.start(callback);
 	}
     }
+    /**
+     * stop()
+     *
+     * aborts all pending Searcher requests
+     */
+    stop(){ // abort all requests and prime for a restart
+	if(this.done) // why stop something that's already done?
+	    return;
+	this.main_callback_wrapper.callback = null;
+	if(this.headRequest){
+	    this.headRequest.stop();
+	    this.headRequest = null; // in case we stopped during a head request
+	}
+	this.requests.forEach(function(request){
+	    request.stop(); // stop each one
+	});
+    }
 }
 
 
-// A wrapper around many TermManagers
-// meant to be the main interface for doing term data requests
-// will cache all results
-//
-// methods:
-//   constructor()
-//   >Not much
-//
-//   push(term, callback=null)
-//   >>term is the URL term string
-//   >>callback(courses) is the function to be called on completion of loading - removed upon interruption
-//   >sets up a new (or existing) term for loading
-//   >will continue to load this term until it's finished, or another term needs loaded
+/**
+ * TermCacher
+ *
+ * A wrapper around many TermManagers
+ * Meant to be the main interface for doing term data requests
+ * will cache all results, partial and complete
+ *
+ * Methods:
+ * constructor()
+ * push(term, callbal=null)
+ */
 class TermCacher{
+    /**
+     * constructor - not much, just creates the object
+     */
     constructor(){
 	this.termManagers = [];
     }
+    /**
+     * push(term, callback=null)
+     *
+     * Sets up a new (or existing) term for loading
+     * will continue to load this term until finished, or another term requires loading
+     *
+     * @param {string}                     term          URL code for the term to load
+     * @param {?function(!Array<!Course>)} [callback]    callback(courses) is the function to be executed after loading - removed upon interruption
+     *                                                   Used mostly for rendering reasons
+     */
     push(term, callback=null){ // start loading a term
 	//first, sift through termManagers and see if we've already got one loaded/loading
 	var index = this.termManagers.findIndex(termManager => termManager.term == term);
@@ -419,7 +487,7 @@ class TermCacher{
 	// stop all the other ones
 	this.termManagers.forEach(function(termManager){
 	    termManager.stop();
-	})
+	});
 	// then resume/start the target manager
 	// if it's already in there, we removed it earlier. Just add it back and update the callback
 	this.termManagers.push(index > -1 ? activeManager : new TermManager(term));

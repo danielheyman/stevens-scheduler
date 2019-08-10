@@ -16,20 +16,31 @@ app.changed()
 >and if there is any deviation between that saved schedule and what is actually on the board
 >ie, modified but not yet saved
 
-autoInAlts()
+app.autoInAlts()
 >check if two sections are of the same course (ex: MATH 101 lab and MATH 101 lecture)
 */
 
-// generates hash string with all important schedule values included
-// the hash will take the form of the following:
-//     TERMCODE=CRN,CRN,CRN&IFCLOSED+NOTES
-//   example:
-//     201990=76589,76609,76710&C
-//     this means term code 201990
-//                selected courses are 76589,76609,76710
-//                and we're showing closed courses
-// if includeNotes is set to true (used for saving schedules),
-// they are appended at the end of the hash, after a "+"
+
+/**
+ * generateHash(includeNotes)
+ * 
+ * generates hash string with all important schedule values included
+ * the hash will take the form of the following:
+ *     TERMCODE=CRN,CRN,CRN&IFCLOSED+NOTES
+ *   example:
+ *     201990=76589,76609,76710&C
+ *     this means term code 201990
+ *                selected courses are 76589,76609,76710
+ *                and we're showing closed courses
+ * if includeNotes is set to true (used for saving schedules),
+ * they are appended at the end of the hash, after a "+"
+ *
+ * @param   {boolean}  includeNotes  Add notes to return
+ * @returns {string}                 Hash
+ *
+ * @memberOf app
+ * @constant
+ */
 app.generateHash = function(includeNotes) {
     var hash = app.term + "=";
     hash += app.selected.map(function(s){
@@ -42,16 +53,30 @@ app.generateHash = function(includeNotes) {
     return hash;
 };
 
-
-// gets the current location.hash with decodeURIComponent
+/**
+ * app.getHash()
+ *
+ * gets the current location.hash with decodeURIComponent
+ *
+ * @returns {string}
+ * @memberOf app
+ * @constant
+ */
 app.getHash = function(){
     return decodeURIComponent(location.hash);
 };
 
-
-// detects change from saved schedule
-// this is done be first checking if there's a saved schedule selected
-// then comparing the hash values of the two
+/**
+ * app.changed()
+ *
+ * detects change from saved schedule
+ * this is done be first checking if there's a saved schedule selected
+ * then comparing the hash values of the two
+ *
+ * @returns {boolean}
+ * @memberOf app
+ * @constant
+ */
 app.changed = function(){
     if(app.selected.length == 0)
 	return false;
@@ -74,7 +99,18 @@ app.changed = function(){
     return ret;
 };
 
-// check if check_course exists within the alts of course_alts, but ONLY if we're in automatic mode
+/**
+ * app.autoInAlts(check_course, course_alts)
+ *
+ * check if check_course exists within the alts of course_alts, but ONLY if we're in automatic mode
+ *
+ * @param {?Course}   check_course
+ * @param {?Course}   course_alts
+ * @returns {boolean}
+ *
+ * @memberOf app
+ * @constant
+ */
 app.autoInAlts = function(check_course, course_alts){ // pretty much just fixes a render bug
     if(check_course == null || course_alts == null)
 	return false; // if there's one or zero, we don't even need to check

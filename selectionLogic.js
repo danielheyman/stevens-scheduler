@@ -7,61 +7,89 @@ In this file:
 Lazy class
 >caches generated schedules
 
-autoConstruct()
+app.autoConstruct()
 >creates a Lazy object which contains a generator for all valid courses of a given schedule
 
-removeDuplicatesBy()
+app.removeDuplicatesBy()
 >util function which removes duplicates from an array based on an object value
 
-cartesianProduct*()
+app.cartesianProduct*()
 >generator which returns a cartesian product from a given set of dimensions
 
-schedCompat()
+app.schedCompat()
 >checks if there are schedule conflicts in a given list of courses
 
-courseCompat()
+app.courseCompat()
 >checks if two courses have a schedule conflict
 
-meetingCompat()
+app.meetingCompat()
 >checks if two meeting times conflict
 */
 
-// a semi-memoized simplified, and specialized version of the Lazy class you can find online
-// essentially, it creates an array from a generator function and populates on get requests
-// also supports filter functions
-/*
-Example of use:
-NOTE: this example won't actually work. It only works with courses, but this is a good illustration
-
-var generator = function*(){
-  for(var i=0; i<10; ++i)
-    yield i;
-}
-
-var divisible_by_2 = function(a){
-  return !(a%2);
-}
-
-var lazy = new Lazy(generator);
-lazy.filter(divisible_by_2);
-
-console..log(lazy.get(0))
-// returns 0
-console..log(lazy.get(1))
-// returns 2
-console..log(lazy.get(2))
-// returns 4
-console..log(lazy.get(3))
-// returns 6
+/**
+ * Lazy
+ * @class
+ *
+ * a semi-memoized simplified, and specialized version of the Lazy class you can find online
+ * essentially, it creates an array from a generator function and populates on get requests
+ * also supports filter functions
+ * 
+ * @example
+ * NOTE: this example won't actually work. It only works with courses, but this is a good illustration
+ * 
+ * var generator = function*(){
+ *   for(var i=0; i<10; ++i)
+ *     yield i;
+ * }
+ * 
+ * var divisible_by_2 = function(a){
+ *   return !(a%2);
+ * }
+ * 
+ * var lazy = new Lazy(generator);
+ * lazy.filter(divisible_by_2);
+ * 
+ * console..log(lazy.get(0))
+ * // returns 0
+ * console..log(lazy.get(1))
+ * // returns 2
+ * console..log(lazy.get(2))
+ * // returns 4
+ * console..log(lazy.get(3))
+ * // returns 6
+ *
+ * @constant
 */
 class Lazy{
+    /**
+     * constructor(inputgen)
+     *
+     * param {!function*(!Array<?Course>):!Array<!Course>|!Array<!Courses>} inputgen  generator which gives data cached here
+     * if input gen is an array, get will return that array
+     *
+     * @constant
+     */
     constructor(inputgen){
         this.core = inputgen;
         this.data = [];
     	this.filters = [];
 	this.done = false;
     }
+    /**
+     * get(i, set=false)
+     *
+     * grabbs a value from the generator
+     *
+     * @param   {number}                  i     desired index in generated array
+     * @param   {boolean}                [set]  set app.selected to value grabbed?
+     *
+     * @returns {!Array<!Course>|boolean}       false if generator is done 
+     *
+     * @constant
+     */
     get(i, set=false){
+	if(Array.isArray(this.core))
+	    return this.core;
         while(!this.done && (this.data.length <= i)){
 	    var tmp = this.core.next();
 	    if(tmp.done){
@@ -74,7 +102,7 @@ class Lazy{
 		this.data.push({value: tmp.value, selected: tmp.value.filter(function(course){// => // cache selected change
 		    return !course.home.alts.reduce(function(acc, cur){ // look through all of course offerings
 			return acc.concat(cur); // where cur is a typePack
-		    }, []).includes(app.courses[app.course]) // remove pending selection
+		    }, []).includes(app.course !== null ? app.courses[app.course] : null); // remove pending selection
 		})}); // we need to do this here so it updates the url dynamically
             }
 	}
@@ -86,38 +114,63 @@ class Lazy{
 	location.hash = app.generateHash(false); // update url
         return data.value;
     }
+    /**
+     * filter
+     * 
+     * add a filter to generated data
+     *
+     * @param {function(!Array<?Course>):boolean} filter_fun
+     *
+     * @returns {!Lazy}
+     *
+     * @constant
+     */
     filter(filter_fun){
 	this.filters.push(filter_fun);
 	return this;
     }
 }
 
-// return a Lazy object which spits out valid schedules, and cache it so we don't need to generate the lazy more than once
+/**
+ * app.autoConstruct
+ * 
+ * return a Lazy object which spits out valid schedules, and cache it so we don't need to generate the lazy more than once
+ * 
+ * @param {!Array<?Course>} courses
+ *
+ * @returns {!Lazy}
+ *
+ * @memberof app
+ * @constant
+ */
 app.autoConstruct = function(courses){
-    if(courses[0] === undefined) return {get: function(i){return []}}; // no courses - go no further
-    if(courses.slice(-1)[0] === undefined) // remove empty at end when no class is selected
+    if(courses[0] === undefined || courses[0] === null) return new Lazy([]); // no courses - go no further
+    if(courses.slice(-1)[0] === undefined || courses.slice(-1)[0] === null) // remove empty at end when no class is selected
 	courses.pop();
     if(app.mode == "Manual"){
 	courses = app.closed ? courses : courses.filter(course => course.seatsAvailable > 0);
 	if("M"+courses.map(course => course.URLcode).join() == app.savedCourseGenerator)
-	    return app.courses_generator; // don't have to run the calculation for every hour in every day
+	    return app.courses_generator || new Lazy([]); // don't have to run the calculation for every hour in every day
 	if(app.savedCourseGenerator[0] == "A" && app.course != null){ // switching from automatic to manual - update app.course
-	    if(app.courses_generator)
-		if(app.courses_generator.get(app.course_list_selection))
-		    courses = app.courses_generator.get(app.course_list_selection); // slight optimization for caching
+	    if(app.courses_generator){
+		if(app.courses_generator.get(app.course_list_selection)){
+		    var tmp = app.courses_generator.get(app.course_list_selection);
+		    courses = Array.isArray(tmp) ? tmp : []; // slight optimization for caching
+		}
+	    }
 	    app.course = courses.filter(function(course){
-		return course.home == app.courses[app.course].home;
+		return (app.course !== null ) && (course.home == app.courses[app.course].home);
 	    })[0].index; // replace app.course with the proper one automatically assigned
 	    document.getElementById("selectBox").value = app.course.toString();
 	    //and fix a render bug
 	}
 	app.savedCourseGenerator = "M"+courses.map(el => el.URLcode).join();
-	app.courses_generator = {get: function(i){return courses;}};
+	app.courses_generator = new Lazy(courses);
 	return app.courses_generator;
     }
     //automatic generator
     if("A"+app.removeDuplicatesBy(course => course.home, courses).map(el => el.home.URLcode).filter(c => c).join() + (app.closed ? "C" : "") == app.savedCourseGenerator)
-	return app.courses_generator; // don't have to run the calculation for every hour in every day
+	return app.courses_generator || new Lazy([]); // don't have to run the calculation for every hour in every day
     if(app.savedCourseGenerator[0] == "M" && app.course){ // switching from manual to automatic - update app.course
 	app.course = app.courses[app.course].home.index; // basically just a render bug
 	document.getElementById("selectBox").value = app.course.toString();
@@ -144,10 +197,22 @@ app.autoConstruct = function(courses){
     return app.courses_generator;
 };
 
-// remove duplicates by object key
-/* Example:
-removeDuplicatesBy((obj => obj.a), [{a: 1}, {a: 2}, {a: 1}, {a: 3}])
->{{a: 1}, {a: 2}, {a:3}]
+/**
+ * app.removeDuplicatesBy
+ *
+ * remove duplicates by object key
+ * 
+ * @param {function(?*):boolean} keyFn
+ * @param {!Array<?Object>}      array
+ *
+ * @returns {!Array<!Object>}
+ *
+ * @example
+ * removeDuplicatesBy((obj => obj.a), [{a: 1}, {a: 2}, {a: 1}, {a: 3}])
+ * returns {{a: 1}, {a: 2}, {a:3}]
+ *
+ * @memberof app
+ * @constant
  */
 app.removeDuplicatesBy = function(keyFn, array) {
     var mySet = new Set();
@@ -158,9 +223,21 @@ app.removeDuplicatesBy = function(keyFn, array) {
     });
 };
 
-// Generates a Cartesian Product with given dimensions
-// Example: [['a', 'b'], ['c', 'd']] => [['a', 'c'], ['a', 'd'], ['b', 'c'], ['b', 'd']]
-// go read the wikipedia article on cartesian products for more info
+/**
+ * app.cartesianProduct*(dimensions)
+ *
+ * Generates a Cartesian Product with given dimensions
+ * Example: [['a', 'b'], ['c', 'd']] => [['a', 'c'], ['a', 'd'], ['b', 'c'], ['b', 'd']]
+ * go read the wikipedia article on cartesian products for more info
+ *
+ * @param   {!Array<!Array<?Object>>} dimensions
+ *
+ * @returns {!Generator}
+ *  yields  {!Array<?Object>}
+ *
+ * @memberof app
+ * @constant
+ */
 app.cartesianProduct = function*(dimensions){
     if(dimensions.map(dimension => dimension.length == 0).reduce((acc, cur) => (acc || cur), false))
 	return; // there's an empty dimension - this means all the courses in it are closed
@@ -187,7 +264,18 @@ app.cartesianProduct = function*(dimensions){
     }
 };
 
-// check if a schedule in the form of sched:[course...] has no conflicts
+/**
+ * app.schedCompat(sched)
+ *
+ * check if a schedule in the form of sched:[course...] has no conflicts
+ *
+ * @param   {!Array<!Course>} sched  schedule to check
+ *
+ * @returns {boolean}                  is this schedule compatable
+ *
+ * @memberof app
+ * @constant
+*/
 app.schedCompat = function(sched){
     if(sched.length == 1)
 	return true; // if there's one class, it's automatically valid
@@ -202,8 +290,20 @@ app.schedCompat = function(sched){
     return true; // if none are incompatable, then the schedule is valid
 };
 
-// expand courses into meeting times and check validity
-// this is needed because some courses have multiple meeting times
+/**
+ * app.courseCompat(a, b)
+ *
+ * expand courses into meeting times and check validity
+ * this is needed because some courses have multiple meeting times
+ *
+ * @param   {!Course} a  schedule to check
+ * @param   {!Course} b  schedule to check
+ *
+ * @returns {boolean}      are these two courses compatable
+ *
+ * @memberof app
+ * @constant
+*/
 app.courseCompat = function(a, b){
     return a.meetings.reduce(function(a_compat, a_meeting){ // check every meeting in a...
 	return a_compat && b.meetings.reduce(function(b_compat, b_meeting){ // against every meeting in b
@@ -212,7 +312,19 @@ app.courseCompat = function(a, b){
     }, true); // every meeting in a, return true else return false
 };
 
-// Check if two meetings are compatable (don't overlap)
+/**
+ * app.meetingCompat(a, b)
+ *
+ * Check if two meetings are compatable (don't overlap)
+ *
+ * @param   {!Meeting} a  meeting to check
+ * @param   {!Meeting} b  meeting to check
+ *
+ * @returns {boolean}       are these two meetings compatable
+ *
+ * @memberof app
+ * @constant
+ */
 app.meetingCompat = function(a, b){
     if(!["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].reduce(function(acc, day){ // check if any of the days overlap
 	return acc || (a[day] && b[day]); // and carry over any trues
@@ -221,5 +333,5 @@ app.meetingCompat = function(a, b){
     return !( (a.beginTime >= b.beginTime && a.beginTime <  b.endTime)|| // beginning time of a is within b
 	      (a.endTime   >  b.beginTime && a.endTime   <= b.endTime)|| // end       time of a is within b
 	      (b.endTime   >  a.beginTime && b.endTime   <= a.endTime)|| // beginning time of b is within a
-	      (b.endTime   >  a.beginTime && b.endTime   <= a.endTime) ) // end       time of b is within a
+	      (b.endTime   >  a.beginTime && b.endTime   <= a.endTime) ); // end       time of b is within a
 };

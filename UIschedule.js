@@ -9,40 +9,40 @@ EventListener for escape/delete
 change_style()
 >toggles between dark mode and light mode
 
-autoAndLabs()
+app.autoAndLabs()
 >gets all selected sections which are of the same course as the input section
 >used to render hovering
 
-fillSchedule()
+app.fillSchedule()
 >Renders courses into the on screen schedule
 
 window.onhashchange()
 >detects a URL shared schedule during normal operation
 
-courseHere()
+app.courseHere()
 >Checks if a course section is offered during a given day/hour
 >If so, returns a minimal rendering object
 
-convertTime()
+app.convertTime()
 >Converts a time string into a float offset value for rendering
 
-autoFilter()
+app.autoFilter()
 >for automatic mode - removes all 
 
-webclasses()
+app.webclasses()
 >takes in a list of courses, filters, and returns only web courses
 
-fetchDescription()
+app.fetchDescription()
 >grabs a course's description from data server and shows it to the user
 
-dayUpdate()
+app.dayUpdate()
 >looks through all courses to be rendered. If any of those courses are on
 >a weekend, expand the schedule to show those courses
 
-loadHash()
+app.loadHash()
 >used to load a hash from a save or a URL
 
-click()
+app.click()
 >handles a doubleclick on a rendered course
  */
 
@@ -56,16 +56,32 @@ window.addEventListener("keydown", function (e) {
 	app.courses_generator = null; // force a recalculation to reflect change in app.course
 	app.fillSchedule();
     }
-})
+});
 
-// this function loads / unloads style_dark.css to switch between dark and light mode
+/**
+ * change_style(styleSlider)
+ *
+ * this function loads / unloads style_dark.css to switch between dark and light mode
+ *
+ * @param {!Element} styleSlider  top left slider
+ */
 let change_style = function(styleSlider){
     document.styleSheets[1].disabled = !styleSlider.checked;
     document.getElementById('logo').src = app_config.getLogoName(styleSlider.checked);
     window.localStorage.darkMode = styleSlider.checked.toString(); // see mounted.js for storage value handling on page re/load
-}
+};
 
-// grab the course, and pair it with any labs (and recs, etc). Determines hover style in auto
+/**
+ * app.autoAndLabs(check_course)
+ *
+ * grab the course, and pair it with any labs (and recs, etc). Determines hover style in auto
+ *
+ * @param   {?Course}          check_course  course to check
+ * @returns {!Array<!Course>}
+ *
+ * @memberOf app
+ * @constant
+ */
 app.autoAndLabs = function(check_course){
     if(check_course == null)
 	return []; // if there's one or zero, we don't even need to check
@@ -74,13 +90,22 @@ app.autoAndLabs = function(check_course){
     return app.courses_generator ? app.courses_generator.get(app.course_list_selection).filter(course => course && course.home == check_course.home) : [];
 };
 
-// renders courses into the on screen schedule
+/**
+ * app.fillSchedule(referrer = null)
+ *
+ * renders courses into the on screen schedule
+ *
+ * @param   {?HTMLElement} [referrer]  HTML element calling function
+ *
+ * @memberOf app
+ * @constant
+ */
 app.fillSchedule = function(referrer = null) {
     if(referrer)
 	app.course_list_selection = referrer.value;
     app.course = document.getElementById("selectBox").value != "" ? parseInt(document.getElementById("selectBox").value, 10) : null;
     var wrappers = document.getElementsByClassName("wrapperInternal");
-    var schedule = app.autoConstruct(app.selected.concat(app.courses[app.course])).get(app.mode == 'Manual' ? 0 : app.course_list_selection);
+    var schedule = app.autoConstruct(app.selected.concat(app.course !== null ? app.courses[app.course] : null)).get(app.mode == 'Manual' ? 0 : app.course_list_selection);
     // Then, cycle through and build a divlist
     var divTracker = [];
     for(var i=0; i < wrappers.length; ++i){
@@ -108,11 +133,11 @@ app.fillSchedule = function(referrer = null) {
 		    return function(){app.fetchDescription(c);}; // value of course to be updated
 		}(course);
 		link.innerText = "Description";
-		div.appendChild(link)
+		div.appendChild(link);
 		div.setAttribute("data-index", course.index);
 		div.setAttribute("data-length", courseHere.length);
 		div.setAttribute("data-top", courseHere.top);
-		if(!app.autoInAlts(course, app.courses[app.course])) // run an update instantle - fixes flashes
+		if(!app.autoInAlts(course, app.course !== null ? app.courses[app.course] : null)) // run an update instantle - fixes flashes
 		    div.classList.add("selected");
 		div.style.top = div.getAttribute("data-top") * 100 + '%';
 		div.style.height = app.hovering.includes(course) ? 'auto' : div.getAttribute("data-length") * 100 + '%';
@@ -128,7 +153,7 @@ app.fillSchedule = function(referrer = null) {
     var web = document.getElementById("web");
     while(web.firstChild)
 	web.removeChild(web.firstChild);
-    var webClasses = app.webclasses(schedule);
+    var webClasses = Array.isArray(schedule) ? app.webclasses(schedule) : [];
     webWrapper.style.display = webClasses.length ? "" : "none";
     for(var j=0; j<webClasses.length; ++j){
 	var course = webClasses[j];
@@ -148,9 +173,9 @@ app.fillSchedule = function(referrer = null) {
 		return function(){app.fetchDescription(c);}; // value of course to be updated
 	    }(course);
 	    link.innerText = "Description";
-	    div.appendChild(link)
+	    div.appendChild(link);
 	    div.setAttribute("data-index", course.index);
-	    if(!app.autoInAlts(course, app.courses[app.course])) // run a single update instantly - fixes flashing in some cases
+	    if(!app.autoInAlts(course, app.course !== null ? app.courses[app.course] : null)) // run a single update instantly - fixes flashing in some cases
 		div.classList.add("selected");
 	    web.appendChild(div);
 	    divTracker.push(div);
@@ -163,21 +188,21 @@ app.fillSchedule = function(referrer = null) {
 	    for(var k=0; k<divs.length; ++k){
 		var div = divs[k];
 		var course = app.courses[div.getAttribute("data-index")];
-		if(!app.autoInAlts(course, app.courses[app.course]))
+		if(!app.autoInAlts(course, app.course !== null ? app.courses[app.course] : null))
 		    div.classList.add("selected");
 		else
 		    div.classList.remove("selected");
-		if(app.hovering.includes(course))
+		if(course !== null && app.hovering.includes(course))
 		    div.classList.add("hovering");
 		else
 		    div.classList.remove("hovering");
 		if(div.getAttribute("data-top")){ // non-web
 		    div.style.top = div.getAttribute("data-top") * 100 + '%';
-		    div.style.height = app.hovering.includes(course) ? 'auto' : div.getAttribute("data-length") * 100 + '%';
-		    div.style.minHeight = !app.hovering.includes(course) ? 'auto' : div.getAttribute("data-length") * 100 + '%';
+		    div.style.height = (course !== null && app.hovering.includes(course)) ? 'auto' : div.getAttribute("data-length") * 100 + '%';
+		div.style.minHeight = !(course !== null && app.hovering.includes(course)) ? 'auto' : div.getAttribute("data-length") * 100 + '%';
 		}
 	    }
-	}
+	};
     }(divTracker);
     for(var j=0; j<divTracker.length; ++j){
 	divTracker[j].ondblclick = function(course){
@@ -185,19 +210,19 @@ app.fillSchedule = function(referrer = null) {
 		app.click(course);
 		app.course = null;
 		document.getElementById("selectBox").value = "";
-	    }
+	    };
 	}(app.courses[divTracker[j].getAttribute("data-index")]);
 	divTracker[j].onmouseenter = function(course){
 	    return function(){
 		app.hovering = app.autoAndLabs(course);
 		update();
-	    }
+	    };
 	}(app.courses[divTracker[j].getAttribute("data-index")]);
 	divTracker[j].onmouseleave = function(){
 	    return function(){
 		app.hovering = [];
 		update();
-	    }
+	    };
 	}();
     }
     
@@ -212,12 +237,29 @@ app.fillSchedule = function(referrer = null) {
     window.localStorage.setItem('lastViewed', app.generateHash(false));
 };
 
-// handler for catching shared scheduled mid-operation without a refresh
-// this only works because the onhashchange function fires after a normal fillSchedule
-// so, all we need to do is detect if we just ran a fill schedule
-// if so, ignore the hash change. If not, we know there's been a manual change -- refill
-// and alert GA of a schedule shared
+/**
+ * app.disableOnHashChange
+ *
+ * Works with window.onhashchange (below) as a means of internal bypassing
+ * Ex, if we're testing a course without adding it to selected, don't change hash
+ *
+ * @type {boolean}
+ *
+ * @memberof app
+ */
 app.disableOnHashChange = false;
+/**
+ * window.onhashchange
+ *
+ * handler for catching shared scheduled mid-operation without a refresh
+ * this only works because the onhashchange function fires after a normal fillSchedule
+ * so, all we need to do is detect if we just ran a fill schedule
+ * if so, ignore the hash change. If not, we know there's been a manual change -- refill
+ * and alert GA of a schedule shared
+ *
+ * @memberof app
+ * @constant
+ */
 window.onhashchange = function(){
     //first, check if we need to load
     //IE, if hash agrees with loaded schedule
@@ -229,9 +271,23 @@ window.onhashchange = function(){
     app.disableOnHashChange = false;
 };
 
-// tests whether or not a course is in a day/hour, and if so returns a render object
-app.courseHere = function(day, hour, course){
-    if (!course) return;
+/**
+ * app.courseHere
+ *
+ * tests whether or not a course is in a day/hour, and if so returns a render object
+ *
+ * @param   {string}   day
+ * @param   {string}  _hour
+ * @param   {?Course}  course
+ *
+ * @returns {?Object}
+ *
+ * @memberof app
+ * @constant
+ */
+app.courseHere = function(day, _hour, course){
+    if (!course) return null;
+    var hour = parseInt(_hour, 10);
     var res = null;
     // if course is in day&hour, res will become an object with css information
     
@@ -244,28 +300,58 @@ app.courseHere = function(day, hour, course){
 	    top: start-Math.trunc(start),
 	    length: end-start,
 	    loc: ((Boolean(meeting.building) && meeting.building.trim().length && Boolean(meeting.room) && meeting.room.trim().length) ? (meeting.building + " " + meeting.room) : ""),
-	}
+	};
     });
     return res;
 };
 
-// converts a time from hour-minute (ex: 1230) format into a float format representing
-// the offset between the time value and the top of the schedule
+/**
+ * app.convertTime(time)
+ *
+ * converts a time from hour-minute (ex: 1230) format into a float format representing
+ * the offset between the time value and the top of the schedule
+ *
+ * @param   {string} time
+ *
+ * @returns {number}
+ *
+ * @memberof app
+ * @constant
+ */
 app.convertTime = function(time){
     var minute = time.substr(-2);
     return parseFloat(time.substr(0, time.length-minute.length))+parseFloat(minute)/60-8;
 };
 
-// takes a list of courses and returns only the web courses
+/**
+ * app.webclasses(courses)
+ *
+ * takes a list of courses and returns only the web courses
+ *
+ * @param   {?Array<?Course>} courses
+ *
+ * @returns {!Array<!Course>}
+ *
+ * @memberof app
+ * @constant
+ */
 app.webclasses = function(courses){
     return courses ? courses.filter(function(course){
 	return course && (course.meetings.map(el => el.building == "ONLINE").reduce((a, b) => (a || b), false));
     }) : [];
 };
 
-// fetches and dislpays the description of a course
+/**
+ * app.fetchDescription
+ *
+ * fetches the description of a course and displays it in the foreground
+ *
+ * @param {!Course} course
+ *
+ * @memberof app
+ * @constant
+ */
 app.fetchDescription = function(course){
-    //legacy GA                                 
     ga('send', 'event', 'description', 'fetch');
     //first, show description box
     document.getElementById("description-fetch").style.display = "";
@@ -278,7 +364,7 @@ app.fetchDescription = function(course){
 	show.innerText = text;
 	show.style.display = "";
 	document.getElementById("description-fetch").style.display = "none";
-    }
+    };
     if(!course.description){
 	// if it's not loaded, load it and cache it in the course object
 	(new Searcher("desc", app.term.toString(), course.URLcode.toString())).start(function(response){
@@ -292,7 +378,14 @@ app.fetchDescription = function(course){
     }
 };
 
-// if needed, expands schedule to include Saturdays and Sundays - and show "No valid schedules"
+/**
+ * app.dayUpdate()
+ *
+ * if needed, expands schedule to include Saturdays and Sundays - and show "No valid schedules"
+ *
+ * @memberof app
+ * @constant
+ */
 app.dayUpdate = function(){
     //first, hide weekends
     if(app.mode == "Automatic"){ // check if valid
@@ -367,9 +460,18 @@ app.dayUpdate = function(){
 	    trs[i].children[7].style.display = "none";
 	}
     }
-}
+};
 
-// used to load in a schedule from either a save or a shared URL
+/**
+ * app.loadHash(first = false){
+ *
+ * Loads a schedule from URL hash, and checks whether or not that course is a saved course
+ *
+ * @param {boolean} [first]
+ *
+ * @memberof app
+ * @constant
+*/
 app.loadHash = function(first = false){
     var hashes = app.getHash().split("=")[1].split("&")[0].split(",");
     app.selected = app.courses.filter(function(course){
@@ -395,18 +497,29 @@ app.loadHash = function(first = false){
     }
 };
 
-// handles a double click on a rendered schedule
-// this adds or removes the course from app.selected
-// but this needs extra steps and resets in auto mode
+/**
+ * app.click(course)
+ *
+ * handles a double click on a rendered schedule
+ * this adds or removes the course from app.selected
+ * but this needs extra steps and resets in auto mode
+ *
+ * @param {?Course} course
+ *
+ * @memberof app
+ * @constant
+ */
 app.click = function(course){
-    if (app.autoInAlts(app.courses[app.course], course)){ // needs to be added to selected
+    if(course === null)
+	return;
+    if (app.autoInAlts(app.course !== null ? app.courses[app.course] : null, course)){ // needs to be added to selected
 	ga('send', 'event', 'course', 'add');
 	document.getElementById("selectBox").value = "";
 	if(app.mode == "Manual"){
 	    app.course = null;
 	    app.selected.push(course);
 	} else {
-	    var intended = app.autoConstruct(app.selected.concat(app.courses[app.course])).get(app.course_list_selection).filter(c => app.autoInAlts(app.courses[app.course], c))
+	    var intended = app.autoConstruct(app.selected.concat(app.course !== null ? app.courses[app.course] : null)).get(app.course_list_selection).filter(c => app.autoInAlts(app.course !== null ? app.courses[app.course] : null, c));
 	    app.course = null;
 	    intended.forEach(c => app.selected.push(c));
 	    app.savedCourseGenerator = "A";

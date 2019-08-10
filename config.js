@@ -18,7 +18,14 @@ Those sections are as follows:
  L->Used for determining names of files, error messages, and your college's name
 */
 
-//config init -- don't touch this
+/**
+ * app_config
+ *
+ * Namespace object for holding config values defined below - don't touch this
+ *
+ * @namespace
+ * @constant
+ */
 let app_config = {}; // used for namespace and definition order reasons
 
 /*_____  ________      ________ _      ____  _____  ______ _____  
@@ -38,20 +45,29 @@ let app_config = {}; // used for namespace and definition order reasons
 This section contains options useful for non-production versions
 */
 
-// Used for testing - out of a given term, this is how many courses are to be loaded
-// A lower percentage means fewer courses, which means less functionality but faster loading & testing
+/**
+ * app_config.test_percent_cap
+ *
+ * Used for testing - out of a given term, this is how many courses are to be loaded                  
+ * A lower percentage means fewer courses, which means less functionality but faster loading & testing
+ * 
+ * @type {number}
+ * @memberOf app_config
+ * @constant
+ */
 app_config.test_percent_cap = 100;
 
-// Used for performance tuning - for each large courses request, this is how many courses are requested
-// A lower number means fewer courses requested per request and thus faster requests, but more requests overall
-// For CSU, I've found that 300 gives the fastest loading times. However, the server will honor up to 500
+/**
+ * app_config.chunk
+ *
+ * Used for performance tuning - for each large courses request, this is how many courses are requested
+ * A lower number means fewer courses requested per request and thus faster requests, but more requests overall
+ *
+ * @type {number}
+ * @memberOf app_config
+ * @constant
+ */
 app_config.chunk = 300;
-//These values have been found from tested on my machine. Feel free to test yourself
-//500---> Finish: 46.84s, 49.08s, 42.61s = 46.176s avg
-//400---> Finish: 44.52s, 40.94s, 37.04s = 40.826s avg
-//300---> Finish: 38.30s, 35.46s, 38.66s = 37.473s avg ***
-//200---> Finish: 42.70s, 43.13s, 38.08s = 41.303s avg
-//100---> Finish: 45.26s, 34.36s, 36.82s = 38.813s avg
 
 
 /*_      _____ ____  _____  ______ ____  _    _ ______  _____ _______ _____ 
@@ -139,106 +155,162 @@ and things breaking on the page. The important part is being able to check each 
 and see JSON coming in properly. If you can get this to work, continue on to the next section
 */
 
-// app_config.URLprefix
-// The common URL prefix for all incoming data from your university's server
-// should look like 'https://server.college.edu/courseCommon/'
-// every request will start with this string, and have data appended to it
-// if you have a special case, it can be addressed in specific functions
-// this is for convienence only
-//
-// NOTE: If you are able to use a CORS proxy, this is a good place to prefix it.
-// However, if your college uses header cookies (like CSU) it might difficult or
-// impossible to use a direct proxy to load courses from your college.
-// Two options: 1) Forget about CORS and set app_config.CORStest to true
-//                 while you wait for your college to add Allow-Access-Control-Origin
-//              2) Set up your own server that loads courses and re-distributes
-//                 them to end-users, appending Allow-Access-Control-Origin yourself
-//                 This means less overhead on your college but way more work on your end
+/**
+ * app_config.URLprefix
+ *
+ * The common URL prefix for all incoming data from your university's server
+ * should look like 'https://server.college.edu/courseCommon/'
+ * every request will start with this string, and have data appended to it
+ * if you have a special case, it can be addressed in specific functions
+ * this is for convienence only
+ *
+ * NOTE: If you are able to use a CORS proxy, this is a good place to prefix it.
+ * However, if your college uses header cookies (like CSU) it might difficult or
+ * impossible to use a direct proxy to load courses from your college.
+ * Two options: 1) Forget about CORS and set app_config.CORStest to true
+ *                 while you wait for your college to add Allow-Access-Control-Origin
+ *              2) Set up your own server that loads courses and re-distributes
+ *                 them to end-users, appending Allow-Access-Control-Origin yourself
+ *                 This means less overhead on your college but way more work on your end
+ *
+ * @type {string}
+ * @memberOf app_config
+ * @constant
+ */
 app_config.URLprefix = 'https://stevens-scheduler.cfapps.io/p/';
 
-// app_config.URLgetTerms()
-// This function is used to get the URL needed for querying available terms
-// the response of which will be processed in app_config.PROCESSgetTerms()
-//
-// this is where the GETPOST parameter is introduced. It has three important members
-// that MUST be set:
-// 1) url
-//    L-> the URL which the request takes place
-// 2) openMethod
-//    L-> must be set to either "GET" or "POST", which corresponds to the needed request type
-// 3) postData
-//    L-> used when openMethod is "POST", and contains the data to post
-//    L-> may be left as null if not a POST request
+/**
+ * Before we continue, it's time to introcude the GETPOST object
+ * When an XMLHttp request is made, it can be inspected through a browser's network traffic monitor
+ * This object has properties which are to be set to hold that information
+ *
+ * Params:
+ *   url         The URL which the request takes place			 	 
+ *   openMethod  Request type: must be set to either "GET" or "POST"		 
+ *   postData    used when openMethod is "POST", and contains the data to post	 
+ *               may be left unchanged if not a POST request			 
+ *
+ * @typedef {{
+ *            url:string,
+ *	      openMethod:string,
+ *	      postData:string
+ *          }}
+ */
+var GETPOST;
+
+/**
+ * app_config.URLgetTerms(GETPOST)
+ *
+ * This function is used to get the URL needed for querying available terms
+ * the response of which will be processed in app_config.PROCESSgetTerms()
+ *
+ * @param {!GETPOST} GETPOST
+ *
+ * @memberOf app_config
+ * @constant
+*/
 app_config.URLgetTerms = function(GETPOST){
     GETPOST.openMethod = "GET";
     // GET request - no need to set postData
     GETPOST.url = app_config.URLprefix + "terms";
-}
+};
 
-// app_config.URLgetCourses()
-// This function is used to get the URL needed for quering courses residing in a specific term
-// this function takes three additional parameters:
-// 1) "termCode", which is the URL code used to represent a term in a term request.
-//     termCode is calculated in app_config.PROCESSgetTerms
-// 2) "offset", which is passed as a decimal number, which represents the starting index of the
-//     desired chunk in a master list of all courses
-// 3) "size", which is passed as a decimal number, which represents the total number
-//     of courses being requested
-// offset and size are automatically generated and handled in librequests.js
+/**
+ * app_config.URLgetCourses(GETPOST, termURLcode, offset, size)
+ *
+ * This function is used to get the URL needed for quering courses residing in a specific term
+ *
+ * @param   {!GETPOST} GETPOST      GETPOST object
+ * @param   {string}   termURLcode  URL code used to represent a term in a term request
+ * @param   {string}   offset       A decimal number string representing the starting index of the
+ *                                  desired chunk in a master list of all courses
+ * @param   {number}   size         A decimal number representing the total number of courses being requested
+ *
+ * @memberOf app_config
+ * @constant
+ */
 app_config.URLgetCourses = function(GETPOST, termURLcode, offset, size){
     GETPOST.openMethod = "GET";
     GETPOST.url = app_config.URLprefix + termURLcode;
     // for Stevens we don't need to bother with offset or size because all the courses come in
     // with 1 request
-}
+};
 
-// app_config.URLgetDescription()
-// This function is used to get the URL needed for quering a course description
-// this function takes two additional parameters:
-// 1) "termURLcode", which is the URL code used to represent a term in a term request.
-//     termURLcode is calculated in app_config.PROCESSgetTerms
-// 2) "courseURLcode", which is the URL code representing a course ID
+/**
+ * app_config.URLgetDescription(GETPOST, termURLcode, courseURLcode)
+ *
+ * This function is used to get the URL needed for quering a course description
+ *
+ * @param {!GETPOST} GETPOST        GETPOST object
+ * @param {string}   termURLcode    URL code used to represent a term in a term request
+ * @param {string}   courseURLcode  URL code representing a course ID
+ *
+ * @memberOf app_config
+ * @constant
+ */
 app_config.URLgetDescription = function(GETPOST, termURLcode, courseURLcode){
     GETPOST.openMethod = "GET";
     GETPOST.url = app_config.URLprefix + "desc/" + courseURLcode;
-}
+};
 
-// app_config.URLgetCourseTotalCount()
-// This function returns the URL needed for checking how many courses can be loaded in a single term
-//
-// For example, if we're looking at Fall 2019 and there are 6610 courses in this term, this function
-// should return the URL which when loaded has data containing 6610.
-//
-// NOTE: if your college is nice and gives you all the courses in a single request, and thus you don't
-//       need to count them, set GETPOST.url to "" and return
+/**
+ * app_config.URLgetCourseTotalCount(GETPOST, termURLcode)
+ *
+ * This function returns the URL needed for checking how many courses can be loaded in a single term
+ * For example, if we're looking at Fall 2019 and there are 6610 courses in this term, this function
+ * should set the URL to that which when loaded has data containing 6610.
+ *
+ * NOTE: if your college is nice and gives you all the courses in a single request, and thus you don't
+ *       need to count them, set GETPOST.url to "" and return
+ *
+ * @param {!GETPOST} GETPOST        GETPOST object
+ * @param {string}   termURLcode    URL code used to represent a term in a term request
+ *
+ * @memberOf app_config
+ * @constant
+ */
 app_config.URLgetCourseTotalCount = function(GETPOST, termURLcode){
     GETPOST.url = "";
-}
+};
 
-// app_config.URLtest()
-// This function returns the URL needed for two things
-// 1) setting session auth cookies
-// 2) testing whether or not we're being blocked by CORS
-//     During development, you'll probbaly be blocked by CORS and will need an extension to disable it
-//     This function decides whether or not you need that extension
-// so you must make a requst here, even if it's to the course main page
-// This function is activated only once, on load of the webpage
+/**
+ * app_config.URLtest(GETPOST)
+ *
+ * This function returns the URL needed for two things
+ * 1) setting session auth cookies
+ * 2) testing whether or not we're being blocked by CORS
+ *     During development, you'll probbaly be blocked by CORS and will need an extension to disable it
+ *     This function decides whether or not you need that extension
+ * So you must make a requst here, even if it's to the course main page
+ * This function is activated only once, on load of the webpage
+ *
+ * @param {!GETPOST} GETPOST        GETPOST object
+ *
+ * @memberOf app_config
+ * @constant
+*/
 app_config.URLtest = function(GETPOST){
     GETPOST.openMethod = "GET";
     GETPOST.url = app_config.URLprefix;
-}
+};
 
-// app_config.URLprime()
-// This function is used to get the URL needed for "priming" a request,
-// or asking the server for cookies needed to make requests.
-// This function is activated on every term change before requesting courses
-// This function takes an additional parameter:
-//  "termCode", which is the URL code used to represent a term in a term request.
-//   termCode is calculated in app_config.PROCESSgetTerms
+/**
+ * app_config.URLprime(GETPOST, termURLcode)
+ *
+ * This function is used to get the URL needed for "priming" a request,
+ * or asking the server for cookies needed to make requests.
+ * This function is activated on every term change before requesting courses
+ *
+ * @param {!GETPOST} GETPOST        GETPOST object
+ * @param {string}   termURLcode    URL code used to represent a term in a term request
+ *
+ * @memberOf app_config
+ * @constant
+*/
 app_config.URLprime = function(GETPOST, termURLcode){
     GETPOST.openMethod = "GET";
     GETPOST.url = ""; // again, stevens is good
-}
+};
 
 
 /*_      _____ ____  _____  ______ ____  _    _ ______  _____ _______ _____ 
@@ -277,55 +349,73 @@ app_config.PROCESSgetCourses()
 app_config.PROCESSgetDescription()
 */
 
+/**
+ * We're going to process terms first, so here's how Term objects look
+ * 
+ * Params:                     
+ *   URLcode    Code used to represent the term in URLS	       
+ *   title      Human readable description, like "Fall 2019"      
 
-// app_config.PROCESSgetTerms()
-// This function is used to process incoming term data into a way
-// the source can understand
-// This function takes one parameter: responseText. This is more
-// or less taken directly from the XMLHttpRequest.onreadystatechange
-// method as this.responseText, and should be treated as such
-//
-// Now, for processing rules. With the input of responseText, construct
-// a list of objects which hold two values: URLcode and title.
-// -URLcode is the URL representation of a term. It's what's passed
-//  to app_config.URLgetCourses, the pattern should be evident
-// -title is nothing more than the human readable version of the term
-//  this can be "Summer 2019" or such. You may need to construct this
-// so long as you can get both of these working, you should be perfect
-//
-// here's an example:
-/*
-responseText (literal text):
-[
-  {
-    "code": "201990",
-    "description": "Fall Semester 2019"
-  },
-  {
-    "code": "201960",
-    "description": "Summer Session 2019"
-  },
-  {
-    "code": "201910",
-    "description": "Spring Semester 2019"
-  }
-]
+ *
+ * @typedef  {{
+ *             URLcode:string,
+ *             title:string
+ *           }}
+ */
+var Term;
 
-desired return value as an array of objects:
-[
-  {
-    URLcode: "201990",
-    title: "Fall Semester 2019"
-  },
-  {
-    URLcode: "201960",
-    title: "Summer Session 2019"
-  },
-  {
-    URLcode: "201910",
-    title: "Spring Semester 2019"
-  }
-]
+
+/**
+ * app_config.PROCESSgetTerms(responseText)
+ *
+ * This function is used to process incoming term data into a way
+ * the source can understand
+ * This function takes one parameter: responseText. This is more
+ * or less taken directly from the XMLHttpRequest.onreadystatechange
+ * method as XMLHttpRequest.responseText, and should be treated as such
+ *
+ * Now, for processing rules. With the input of responseText, construct
+ * a list of Term Objects - 
+ *
+ * here's an example:
+ *     responseText (literal text):
+ *     [
+ *       {
+ *         "code": "201990",
+ *         "description": "Fall Semester 2019"
+ *       },
+ *       {
+ *         "code": "201960",
+ *         "description": "Summer Session 2019"
+ *       },
+ *       {
+ *         "code": "201910",
+ *         "description": "Spring Semester 2019"
+ *       }
+ *     ]
+ *     
+ *     desired return value as an array of objects:
+ *     [
+ *       {
+ *         URLcode: "201990",
+ *         title: "Fall Semester 2019"
+ *       },
+ *       {
+ *         URLcode: "201960",
+ *         title: "Summer Session 2019"
+ *       },
+ *       {
+ *         URLcode: "201910",
+ *         title: "Spring Semester 2019"
+ *       }
+ *     ]
+ *
+ * @param   {string} responseText    XMPHttpRequest.responseText
+ *
+ * @returns {!Array<!Term>}          List of term objects
+ *
+ * @memberOf app_config
+ * @constant
 */
 app_config.PROCESSgetTerms = function(responseText){
     var ret = [];
@@ -356,152 +446,209 @@ app_config.PROCESSgetTerms = function(responseText){
 	ret.push({URLcode: termObj, title: desc});
     });
     return ret;
-}
+};
 
-
-// app_config.PROCESSgetCourseTotalCount()
-// This function is similar to app_config.PROCESSgetTerms, but a lot more simple
-// 
-// The goal here is to take incoming responseText and return an integer
-// representing the total number of courses that can be loaded for a term
-//
-// This function will process the responseText of app_config.URLgetCourseTotalCount
+/**
+ * app_config.PROCESSgetCourseTotalCount(responseText)
+ *
+ * This function is similar to app_config.PROCESSgetTerms, but a lot more simple
+ * 
+ * The goal here is to take incoming responseText and return an integer
+ * representing the total number of courses that can be loaded for a term
+ *
+ * @param   {string} responseText    XMPHttp.responseText
+ *
+ * @returns {number}                 Total number of courses for a term
+ *
+ * @memberOf app_config
+ * @constant
+ */
 app_config.PROCESSgetCourseTotalCount = function(responseText){
     return 1;
     // with stevens we can convince the backend to do just one request
-}
+};
 
-// app_config.PROCESSgetCourses()
-// This function is similar to app_config.PROCESSgetTerms
-//
-// The goal here is to take incoming responseText and coax it into a form
-// the rest of the source code will understand.
-//
-// NOTE: Do NOT filter any courses here. The length of the returned array is
-// very important.
-//
-// Now, for the processing rules. With the input of responseText, construct
-// an array of objects, each representing a course. They should have the
-// following values:
-/*
--courseNumber: if the course is MATH 101, this value should be "101"
--URLcode: the URL code used to get the course description, passed to app_config.URLgetDescription()
--courseRegistrationCode: the code the user inputs into your college's official registration page
-                         this value will be displayed to the user so they can register quickly
-			 Common names are "call number" or "course reference number"
-                         This name will be filled out as app_config.courseRegistrationCodeName later
--title: if the course is MATH 101, this value should be "Introduction to College Algebra"
--credits: integer representation of a course's credit hours
--faculty: string of faculty, such as "Jon Doe, Mike Smith, and Sarah Williams"
--meetings: a list of meetings. See below for more details
-           If meetings is an empty list, this course will be automatically filtered out later
-	   *If the course is held online (partially or fully), there should be a meeting who's
-	   *building is "ONLINE"
-	   *This is so if a course is held both in class and online, it can be handled properly
--scheduleTypeDescription: "Lecture", "Laboratory", "Rescission", etc.
--subject: if the course is MATH 101, this value should be "MATH"
+/**
+ * We're about to introduce the course Object type, but first it's time to introduce the Meeting Object
+ * Each Course Object (coming soon) contains a list of Meeting Objects
+ * These are used to tell when a class is held - what times, days of the week, etc
+ *   
+ * Params:
+ *  All of these properties are to be set in app_config.PROCESSgetTerms
+ *   building     Building shortcode where the class is held                           
+ *   room         Room number where the class is held                                  
+ *   beginTime    When the class begins                                                
+ *                String representation, military time, no colon. Ex: "1430" for 2:30pm
+ *   endTime      Same as above, but for when the class ends                           
+ *   monday       Is the course held on monday?                                        
+ *   tuesday      ^                                                                    
+ *   wednesday    ^                                                                    
+ *   thursday     ^                                                                    
+ *   friday       ^                                                                    
+ *   saturday     ^                                                                    
+ *   sunday       ^                                                                    
+ *
+ * @typedef  {{
+ *             building:string,
+ *             room:string,
+ *             beginTime:string,
+ *             endTime:string,
+ *             monday:boolean,
+ *             tuesday:boolean,
+ *             wednesday:boolean,
+ *             thursday:boolean,
+ *             friday:boolean,
+ *             saturday:boolean,
+ *             sunday:boolean
+ *           }}
+ */
+var Meeting;
 
-and if available:
--sessionMod: some colleges like to specify sessions in course number
-             this value captures that session data, like: "MATH 245A" -> "A"
-                                                          "PSY 525RA" -> "RA"
--maximumEnrollment: if there are 25/100 seats available (75 taken), this value should be "100"
--seatsAvailable: if there are 25/100 seats available (75 taken), this value should be "25"
--waitAvailable: same as above but on a waitlist
--waitCapacity: same as above but on a waitlist
-*/
-// Now, meetings have some strange rules. They are as follows:
-/*
-the meetings property should be an array of objects, all of which have a few properties:
+/**
+ * Before we continue, it's time to introcude the Course Object
+ * This object holds all information about a specific course
+ *
+ * Params:
+ *  The following properties must be set later in app_config.PROCESSgetCourses:
+ *   courseNumber               MATH 101 => "101"                                      
+ *   subject                    MATH 101 => "MATH"                                     
+ *   title                      MATH 101 => "Introduction to College Algebra"          
+ *   credits                    The integer number of credits for the course           
+ *                              If this is a lab/etc part to a class, this should be 0 
+ *   faculty                    Names of instructors, preferrably in a list            
+ *   scheduleTypeDescription    "Lab", "Lecture", "Recetation", etc.                   
+ *   URLcode                    URL code representing a course ID                      
+ *   courseRegistrationCode     Code used to register for a course                     
+ *   meetings                   Explained in next JSDoc comment above                  
+ *                                                                                     
+ *   The following properties may optionally be set in app_config.PROCESSgetCourses if available:
+ *   sessionMod                 some colleges like to specify sessions in course number
+ *                              this value captures that session data, like:           
+ *                                                                 "MATH 245A" -> "A"  
+ *                                                                 "PSY 525RA" -> "RA" 
+ *   maximumEnrollment          Max number of enrollment seats
+ *   seatsAvailable             Number of seats open for enrollment
+ *   waitAvailable              Max number of waitlist seats
+ *   waitCapacity               Number of waitlist seats available
+ *
+ *
+ *   The following properties are automatically assigned later and are only used internally:
+ *   home                       The first of a chunk of sections (all MATH 101 sections
+ *   alts                       List of all other sections, grouped by scheduleTypeDescription
+ *   index                      Position in app.courses master list - used for reference
+ *
+ * Here's an example of a properly formatted course object, including meetings (defined below):
+ *     {
+ *      courseNumber: "101"
+ *      URLcode: "29948"
+ *      title: "Introduction to College Algebra"
+ *      credits: 4
+ *      faculty: "Jon Doe, Mike Smith, and Sarah Williams"
+ *      meetings: [
+ *                 {
+ *     	            building: "BC"
+ *     	            room: "104"
+ *     	            beginTime: "900"
+ *     	            endTime: "1030"
+ *     	            monday: true
+ *     	            tuesday: false
+ *     	            wednesday: true
+ *     	            thursday: false
+ *     	            friday: true
+ *     	            saturday: false
+ *     	            sunday: false
+ *     	           },
+ *                 {
+ *     	            building: "RA"
+ *     	            room: "209"
+ *     	            beginTime: "1230"
+ *     	            endTime: "1400"
+ *     	            monday: false
+ *     	            tuesday: true
+ *     	            wednesday: false
+ *     	            thursday: true
+ *     	            friday: false
+ *     	            saturday: false
+ *     	            sunday: false
+ *     	           }
+ *                ]
+ *      scheduleTypeDescription: "Lecture"
+ *      subject: "MATH"
+ *      maximumEnrollment: "100"
+ *      seatsAvailable: "25"
+ *     }
+ *
+ * @typedef {{
+ *            courseNumber:string,
+ * 	      subject:string,
+ * 	      title:string,                  
+ * 	      credits:number,                
+ * 	      faculty:string,                
+ * 	      scheduleTypeDescription:string,
+ * 	      URLcode:string,                
+ * 	      courseRegistrationCode:string, 
+ * 	      meetings:!Array<!Meeting>,           
+ * 	      sessionMod:string,                
+ * 	      maximumEnrollment:number,      
+ * 	      seatsAvailable:number,         
+ * 	      waitAvailable:number,          
+ * 	      waitCapacity:number,           
+ * 	      home:!Course,                  
+ * 	      alts:!Array<!Array<!Course>>,                
+ * 	      index:number
+ *          }}
+ */
+var Course;
 
--building: if the section is held in BC 104, this value should be "BC"
--room: if the section is held in BC 104, this value should be "104"
--beginTime: string value represented in military time for the start
-            this is to be zero-truncated and missing the :
-            if the course starts at 2:45pm, this should be "1445"
-            if the course starts at 8:30am, this should be "830"
-            if the course starts at 1:00pm, this should be "1300"
--endTime: same as above but for end
--monday: Boolean - is the section held on monday?
--tuesday: same as above
--wednesday: etc
--thursday
--friday
--saturday
--sunday
+/**
+ * app_config.PROCESSgetCourses(responseText)
+ *
+ * This function is similar to app_config.PROCESSgetTerms
+ *
+ * The goal here is to take incoming responseText and coax it into a form
+ * the rest of the source code will understand, IE Course objects (defined above)
+ *
+ * NOTE: Do NOT filter any courses here. The length of the returned array is
+ * very important and should include all courses loaded from a webrequest
+ *
+ * To see which properties need to be set, see the Course Object definition above
+ *
+ * @param   {string}   responseText    XMPHttp.responseText
+ *
+ * @returns {!Array<!Course>}          List of courses with members properly set
+ *
+ * @memberOf app_config
+ * @constant
 */
-// an example of a constructed course is as follows:
-/*
-{
- courseNumber: "101"
- URLcode: "29948"
- title: "Introduction to College Algebra"
- credits: 4
- faculty: "Jon Doe, Mike Smith, and Sarah Williams"
- meetings: [
-            {
-	     building: "BC"
-	     room: "104"
-	     beginTime: "900"
-	     endTime: "1030"
-	     monday: true
-	     tuesday: false
-	     wednesday: true
-	     thursday: false
-	     friday: true
-	     saturday: false
-	     sunday: false
-	    },
-            {
-	     building: "RA"
-	     room: "209"
-	     beginTime: "1230"
-	     endTime: "1400"
-	     monday: false
-	     tuesday: true
-	     wednesday: false
-	     thursday: true
-	     friday: false
-	     saturday: false
-	     sunday: false
-	    }
-           ]
- scheduleTypeDescription: "Lecture"
- subject: "MATH"
- maximumEnrollment: "100"
- seatsAvailable: "25"
-}
-*/
-// Remember to return a LIST of constructed courses
 app_config.PROCESSgetCourses = function(responseText){
     var coursesJSON = JSON.parse(responseText);
-    ret_courses = [];
+    var ret_courses = [];
     coursesJSON.forEach(function(courseJSON){
-	ret_course = {};
+	var ret_course = {};
 
-	ret_course.courseNumber = courseJSON.section.match(/\d+/g)[0];
-	ret_course.subject = courseJSON.section.match(/[a-zA-Z]+/g)[0];
-	ret_course.sessionMod = courseJSON.section.match(/[a-zA-Z]+/g)[1];
+	ret_course.courseNumber = courseJSON['section'].match(/\d+/g)[0];
+	ret_course.subject = courseJSON['section'].match(/[a-zA-Z]+/g)[0];
+	ret_course.sessionMod = courseJSON['section'].match(/[a-zA-Z]+/g)[1];
 	
-	ret_course.URLcode = courseJSON.section;
-	ret_course.courseRegistrationCode = courseJSON.callNumber;
-	ret_course.title = courseJSON.title;
+	ret_course.URLcode = courseJSON['section'];
+	ret_course.courseRegistrationCode = courseJSON['callNumber'];
+	ret_course.title = courseJSON['title'];
 	
-	ret_course.credits = courseJSON.credits;
+	ret_course.credits = courseJSON['credits'];
 
-	ret_course.faculty = courseJSON.instructor;
+	ret_course.faculty = courseJSON['instructor'];
 
-	var section = courseJSON.section.match(/[a-zA-Z]+/g)[1];
+	var section = courseJSON['section'].match(/[a-zA-Z]+/g)[1];
 	if(section.length <= 1)
 	    ret_course.scheduleTypeDescription = "Lecture";
 	else
 	    ret_course.scheduleTypeDescription = section[0];
 	// this covers "L"abs, "R"escissions, "W"orkshops, etc
 
-	ret_course.maximumEnrollment = parseInt(courseJSON.maxEnrollment);
-	ret_course.seatsAvailable = courseJSON.seatsAvailable ? parseInt(courseJSON.seatsAvailable) : ret_course.maximumEnrollment - parseInt(courseJSON.currentEnrollment);
+	ret_course.maximumEnrollment = parseInt(courseJSON['maxEnrollment'], 10);
+	ret_course.seatsAvailable = courseJSON['seatsAvailable'] ? parseInt(courseJSON['seatsAvailable'], 10) : ret_course.maximumEnrollment - parseInt(courseJSON['currentEnrollment'], 10);
 	
-	ret_course.meetings = courseJSON.daysTimeLocation.map(function(meeting){
+	ret_course.meetings = courseJSON['daysTimeLocation'].map(function(meeting){
 	    if(meeting.day == "TBA")
 		return;
 	    var ret = {
@@ -514,32 +661,41 @@ app_config.PROCESSgetCourses = function(responseText){
 		friday: meeting.day.includes("F"),
 		saturday: false,
 		sunday: false
-	    }
+	    };
 	    ret.beginTime = meeting.startTime.substr(0, meeting.startTime.length-4).split(":");
-	    if(parseInt(ret.beginTime[0]) < 8) // sometimes times aren't in military
-		ret.beginTime[0] = (parseInt(ret.beginTime[0])+12).toString();
+	    if(parseInt(ret.beginTime[0], 10) < 8) // sometimes times aren't in military
+		ret.beginTime[0] = (parseInt(ret.beginTime[0], 10)+12).toString();
 	    ret.beginTime = ret.beginTime.join("");
 	    ret.endTime = meeting.endTime.substr(0, meeting.endTime.length-4).split(":");
-	    if(parseInt(ret.endTime[0]) < 8) // sometimes times aren't in military
-		ret.endTime[0] = (parseInt(ret.endTime[0])+12).toString();
+	    if(parseInt(ret.endTime[0], 10) < 8) // sometimes times aren't in military
+		ret.endTime[0] = (parseInt(ret.endTime[0], 10)+12).toString();
 	    ret.endTime = ret.endTime.join("");
 	    return ret;
 	}).filter(meeting => meeting !== undefined);
 	ret_courses.push(ret_course);
-    })
+    });
     return ret_courses.map(function(course){ // deal with "S" courses
 	if(course.scheduleTypeDescription == "S")
 	    course.scheduleTypeDescription = course.sessionMod.substr(1)[0] || "";
 	return course;
     });
-}
+};
 
-
-// app_config.PROCESSgetDescription()
-// Again, very similar to app_config.PROCESSgetTerms, but even more simple
-//
-// The goal here is to take responseText, process it to look friendly on screen,
-// and return the value, that's it
+/**
+ * app_config.PROCESSgetDescription(responseText)
+ *
+ * Again, very similar to app_config.PROCESSgetTerms, but even more simple
+ *
+ * The goal here is to take responseText, process it to look friendly on screen,
+ * and return the value, that's it
+ *
+ * @param {string}   responseText    XMLHttpRequest.responseText
+ *
+ * @returns {string}                 Course description
+ *
+ * @memberOf app_config
+ * @constant
+ */
 app_config.PROCESSgetDescription = function(responseText){
     var ret = responseText.replace(/<br>/g, "\r\n").replace(/<BR>/g, "\r\n").trim(); // format
     
@@ -551,7 +707,7 @@ app_config.PROCESSgetDescription = function(responseText){
 	ret = ret.substr(0, ret.length-2);
     //remove trailing newlines
     return ret;
-}
+};
 
 
 
@@ -570,55 +726,130 @@ Just go throuugh and fill everything out, most of it is
 self explanatory
 */
 
+/**
+ * app_config.collegeName
+ * Full name of your college
+ * 
+ * @type {string}
+ *
+ * @memberOf app_config
+ * @constant
+ */
 app_config.collegeName = "Stevens Institute of Technology";
+
+/**
+ * app_config.collegeNameShort
+ * Few-letter abreviation for your college
+ * 
+ * @type {string}
+ *
+ * @memberOf app_config
+ * @constant
+ */
 app_config.collegeNameShort = "SIT";
+
+/**
+ * app_config.siteTitle
+ * Title for the site exposed in the browser's tab area
+ * 
+ * @type {string}
+ *
+ * @memberOf app_config
+ * @constant
+ */
 app_config.siteTitle = "SIT Scheduler - Course Scheduler for Stevens Institute of Technology";
+
+/**
+ * app_config.siteTitleShort
+ * A short version of the site title used in messages
+ * 
+ * @type {string}
+ *
+ * @memberOf app_config
+ * @constant
+ */
 app_config.siteTitleShort = "SIT Scheduler";
 
-// app_config.courseURLcodeName
-// For many colleges, when a student wants to register for a class they put in a number instead
-// of the course name. At CSU, this is a 5 digit number representing the course id.
-// This value will be shown to the user if they actually want to register for a class
-// Earlier, we defined this value as courseURLcode
-// This varible holds an abreviated (~3-4 char) name for that value that the user will understand
-//
-// For example, at CSU, this value is called the Course Reference Number, and is abreviated as CRN
+/**
+ * app_config.courseURLcodeName
+ *
+ * For many colleges, when a student wants to register for a class they put in a number instead
+ * of the course name. At CSU, this is a 5 digit number representing the course id.
+ * This value will be shown to the user if they actually want to register for a class
+ * Earlier, we defined this value as courseURLcode
+ * This varible holds an abreviated (~3-4 char) name for that value that the user will understand
+ *
+ * For example, at CSU, this value is called the Course Reference Number, and is abreviated as CRN
+ * 
+ * @type {string}
+ *
+ * @memberOf app_config
+ * @constant
+ */
 app_config.courseRegistrationCodeName = "CN";
 
-// app_config.getLogoName()
-// Should return the file path/name of your college's logo, the one saved in this directory
-// At this point, you should go download the logos and place them in the same directory as this file
-// If you only have one logo, just return that file's name. If you want to have two, one for light
-// and one for dark mode, the isDarkMode parameter should be self explanatory
+/**
+ * app_config.getLogoName(isDarkMode)
+ *
+ * Should return the file path/name of your college's logo, the one saved in this directory         
+ * At this point, you should go download the logos and place them in the same directory as this file
+ * If you only have one logo, just return that file's name. If you want to have two, one for light  
+ * and one for dark mode, the isDarkMode parameter should be self explanatory                       
+ *
+ * @param  {boolean} isDarkMode    fed from the style slider - choose a good file for both light and dark themes
+ * 
+ * @returns {string}               file name/path for logo
+ *
+ * @memberOf app_config
+ * @constant
+ */
 app_config.getLogoName = function(isDarkMode){
     return "Stevens-Official-" + (isDarkMode ? "WhiteKO" : "PMSColor") + "-R.svg";
-}
+};
 
+// These next two values are important when developing. Go read up on CORS and why it can be a problem
 
-// These next two values are important when developing. Go read up on CORS and why it's a problem
-
-// This first value specifies whether or not to worry about CORS. The reason this needs to be here
-// is because it's impossible to tell the difference between a normal failed network request
-// and one that's blocked because of CORS unless you're a developer - (and not the script running
-// on the end user's machine)
-// If you expect to have CORS issues, maybe because your college isn't on board with this project yet,
-// set this value to true, and the CORS noti will display for blocked users. Else, set it to false
-// and a "your college's servers seem to be down - check again later" noti will be shown when requests fail
+/**
+ * app_config.CORStest
+ *
+ * This first value specifies whether or not to worry about CORS. The reason this needs to be here         
+ * is because it's impossible to tell the difference between a normal failed network request               
+ * and one that's blocked because of CORS unless you're a developer - (and not the script running          
+ * on the end user's machine)                                                                              
+ * If you expect to have CORS issues, maybe because your college isn't on board with this project yet,     
+ * set this value to true, and the CORS noti will display for blocked users. Else, set it to false         
+ * and a "your college's servers seem to be down - check again later" noti will be shown when requests fail
+ *
+ * @type {boolean}
+ *
+ * @memberOf app_config
+ * @constant
+ */
 app_config.CORStest = false;
 
-// This second value only will only matter when the above is set to true. At the end of the standard
-// message (found in index.js), this will be appended in bold. Use this area to outline something about
-// how the user can convince your college to give access to the website. A name/email of the person that
-// runs the web servers is a good idea. Here's an example:
-// app_config.CORScustom = "If you\'d like to use this tool without needing an extension, go bother Jon Doe, Director of Web Communications, (Jon.Doe@yourcollege.edu) and say you like this tool and want to see it used freeley.";
+/**
+ * app_config.CORScustom
+ *
+ * This second value only will only matter when CORStest is set to true. At the end of the standard
+ * message (found in index.js), this will be appended in bold. Use this area to outline something about        
+ * how the user can convince your college to give access to the website. A name/email of the person that       
+ * runs the web servers is a good idea. Here's an example:                                                     
+ * app_config.CORScustom = "If you\'d like to use this tool without needing an extension, go bother Jon Doe, Director of Web Communications, (Jon.Doe@yourcollege.edu) and say you like this tool and want to see it used freeley.";
+ * 
+ * @type {string}
+ *
+ * @memberOf app_config
+ * @constant
+ */
 app_config.CORScustom = "";
 
 
-
-// You should also go to index.html and do a few things
-// 1) Go set up google analytics, then go to the top of index.html and change the tracking tag
-// 2) Change the second <meta> tag's content to have a description of this website tailored for your college
+// You're almost done!
+//
+// You should also go to index_source.html and do a few things
+// 1) Go set up google analytics, then go to the top of GA.js and change the tracking tag
+// 2) Change the second <meta> tag in index_source.html to properly represent your college
 // 3) If there are any other scripts that need to be loaded, a good place to put them is at the end of mounted.js,
 //    as that's the last script file to load
 
-// At this point, just download files, edit the README and you should be all done
+// At this point, just download logo files, edit the README and you should be all done

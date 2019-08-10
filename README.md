@@ -45,7 +45,7 @@ echo "minifying files..."
 
 echo "->minifying JS..."
 
-closure-compiler --compilation_level SIMPLE_OPTIMIZATIONS --js_output_file min.js --js GA.js config.js index.js librequests.js init.js apputil.js UIschedule.js UIright.js UIsavebar.js selectionLogic.js mounted.js
+closure-compiler --compilation_level SIMPLE_OPTIMIZATIONS --jscomp_warning=* --jscomp_off=strictMissingRequire --js_output_file min.js --js GA.js config.js index.js librequests.js init.js apputil.js UIschedule.js UIright.js UIsavebar.js selectionLogic.js mounted.js
 
 if [[ $? != 0 ]]; then 
     exit 1
