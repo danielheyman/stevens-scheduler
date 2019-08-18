@@ -224,7 +224,7 @@ class Searcher{
 	    };
 	}(this);
 	this.xhr.open(GETPOST.openMethod, GETPOST.url); // local sync
-	this.xhr.withCredentials = true; // needed for auth cookies
+	this.xhr.withCredentials = app_config.useCredentials; // needed for auth cookies
 	if(GETPOST.openMethod == "POST")
 	    this.xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded'); // needed for submitting form data - posts and descriptions
 	this.xhr.send(GETPOST.postData);

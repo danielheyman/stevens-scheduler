@@ -66,7 +66,9 @@ window.addEventListener("keydown", function (e) {
  * @param {!Element} styleSlider  top left slider
  */
 let change_style = function(styleSlider){
-    document.styleSheets[1].disabled = !styleSlider.checked;
+    for(var i = 0; i<document.styleSheets.length; ++i)
+	if(document.styleSheets[i].href.includes("style_dark.min.css"))
+	    document.styleSheets[i].disabled = !styleSlider.checked;
     document.getElementById('logo').src = app_config.getLogoName(styleSlider.checked);
     window.localStorage.darkMode = styleSlider.checked.toString(); // see mounted.js for storage value handling on page re/load
 };

@@ -156,6 +156,18 @@ and see JSON coming in properly. If you can get this to work, continue on to the
 */
 
 /**
+ * app_config.useCredentials
+ * 
+ * Whether or not your college uses AUTH cookies
+ * If you can't get thing's to load, change this value
+ *
+ * @type {boolean}
+ * @memberOf app_config
+ * @constant
+ */
+app_config.useCredentials = false;
+
+/**
  * app_config.URLprefix
  *
  * The common URL prefix for all incoming data from your university's server
@@ -291,7 +303,7 @@ app_config.URLgetCourseTotalCount = function(GETPOST, termURLcode){
 */
 app_config.URLtest = function(GETPOST){
     GETPOST.openMethod = "GET";
-    GETPOST.url = app_config.URLprefix;
+    GETPOST.url = "https://stevens-scheduler.cfapps.io/";
 };
 
 /**
