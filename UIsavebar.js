@@ -248,14 +248,14 @@ app.load = function(schedule) {
     if (foundIdx > -1){ // make sure term is valid
         if(app.term != app.terms[foundIdx].URLcode) { // need to switch term
 	    app.term = app.terms[foundIdx].URLcode;
-	    app.updateTerms();
-	    app.changedTerm(true);
         } else { // already on correct term
 	    app.course = null;
 	    document.getElementById("selectBox").value = "";
-	    app.updateTerms();
-	    app.loadHash(); // just an optimization hack - function found in UIright.js
         }
+	app.updateTerms();
+	app.changedTerm(true); // must always load AFTER loading term
+	// Why? Term isn't always fully loaded when request goes through
+
     }
     app.updateNotes(document.getElementById("notes")); // fix style in case notes have been cached
     app.fillSchedule();
@@ -272,14 +272,14 @@ app.load = function(schedule) {
  * @constant
  */
 app.discard = function() {
-    if(app.changed())
-	if (!window.confirm("Are you sure you want to discard your changes?"))
-	    return;
-    //legacy GA                                
-    ga('send', 'event', 'schedule', 'discard');
     var schedule = app.currentstorage;
     app.currentstorage = null;
-    app.load(schedule);
+    if(app.changed() && !app.load(schedule)){
+	app.currentstorage = schedule;
+	return;
+    }
+    //legacy GA                                
+    ga('send', 'event', 'schedule', 'discard');
     window.localStorage.setItem('lastSaved', "{}");
 };
 

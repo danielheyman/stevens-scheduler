@@ -44,6 +44,9 @@ app.loadHash()
 
 app.click()
 >handles a doubleclick on a rendered course
+
+app.loadHash()
+>loads a hash from URL
  */
 
 // remove app.course and re-render
@@ -265,10 +268,14 @@ app.disableOnHashChange = false;
 window.onhashchange = function(){
     //first, check if we need to load
     //IE, if hash agrees with loaded schedule
-    if(!app.disableOnHashChange && !(app.generateHash(false) == app.getHash().substr(1)) && app.getHash().substr(1).split("=")[0].length){
-	//then load selected & render on screen
-	app.changedTerm("first", {value: app.terms[app.terms.map(el => el.URLcode).indexOf(app.getHash().split("=")[0].substr(1))].URLcode}); // need to pend a term change, just like loading a schedule
-	app.updateTerms();
+    if(!app.disableOnHashChange && !(app.generateHash(false) == app.getHash().substr(1))){
+	if(!app.getHash().substr(1).split("=")[0].length){ // empty hash
+            app.clear();
+	} else {
+            //then load selected & render on screen
+            app.changedTerm("first", {value: app.terms[app.terms.map(el => el.URLcode).indexOf(app.getHash().split("=")[0].substr(1))].URLcode}); // need to pend a term change, just like loading a schedule
+            app.updateTerms();
+	}
     }
     app.disableOnHashChange = false;
 };
@@ -475,6 +482,10 @@ app.dayUpdate = function(){
  * @constant
 */
 app.loadHash = function(first = false){
+    if(!app.getHash().split("=")[0].length){
+	app.clear();
+	return; // no term data - nothing to load
+    }
     var hashes = app.getHash().split("=")[1].split("&")[0].split(",");
     app.selected = app.courses.filter(function(course){
 	return hashes.indexOf(course.URLcode.toString()) > -1;
