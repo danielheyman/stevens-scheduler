@@ -560,7 +560,6 @@ app.loadHash = function(first = false){
 app.click = function(course){
     if(course === null)
 	return;
-    course.locked = false;
     if (app.autoInAlts(app.course !== null ? app.courses[app.course] : null, course)){ // needs to be added to selected
 	ga('send', 'event', 'course', 'add');
 	document.getElementById("selectBox").value = "";
@@ -578,10 +577,15 @@ app.click = function(course){
     else
     {
 	ga('send', 'event', 'course', 'remove');
-	if(app.mode == "Manual")
+	if(app.mode == "Manual") {
+	    course.locked = false; // release
 	    app.selected.splice(app.selected.indexOf(course), 1);
-	else
+	} else {
+	    let toUnlock = app.selected.filter(c => course.home == c.home);
+	    for(let i=0; i<toUnlock.length; ++i)
+		toUnlock[i].locked = false;
 	    app.selected = app.selected.filter(c => course.home != c.home);
+	}
         app.hovering = [];
     }
 
