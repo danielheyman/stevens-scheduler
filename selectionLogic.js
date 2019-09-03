@@ -99,7 +99,7 @@ class Lazy{
 	    if(this.filters.reduce(function(acc, cur_filter){ // run all filters on value
 		return acc && cur_filter(tmp.value);
 	    }, true)){
-		this.data.push({value: tmp.value, selected: tmp.value.filter(function(course){// => // cache selected change
+		this.data.push({value: tmp.value, selected: tmp.value.filter(function(course){// cache selected for change -> take this.core.next() and remove app.course
 		    return !course.home.alts.reduce(function(acc, cur){ // look through all of course offerings
 			return acc.concat(cur); // where cur is a typePack
 		    }, []).includes(app.course !== null ? app.courses[app.course] : null); // remove pending selection
@@ -109,7 +109,7 @@ class Lazy{
 	var data = this.data[i];
 	if(!data)
 	    return false; // no valid schedules
-	if(set || this.data.length != 1) // set selected on either a click, or on a autobar change
+	if(set) // set selected on either a click, or on a autobar change
 	    app.selected = data.selected; // update selected on click
 	location.hash = app.generateHash(false); // update url
         return data.value;
@@ -148,7 +148,7 @@ app.autoConstruct = function(courses){
     if(courses.slice(-1)[0] === undefined || courses.slice(-1)[0] === null) // remove empty at end when no class is selected
 	courses.pop();
     if(app.mode == "Manual"){
-	courses = app.closed ? courses : courses.filter(course => course.seatsAvailable > 0);
+	courses = app.closed ? courses : courses.filter(c => c.seatsAvailable > 0 || c.locked);
 	if("M"+courses.map(course => course.URLcode).join() == app.savedCourseGenerator)
 	    return app.courses_generator || new Lazy([]); // don't have to run the calculation for every hour in every day
 	if(app.savedCourseGenerator[0] == "A" && app.course != null){ // switching from automatic to manual - update app.course
@@ -181,16 +181,23 @@ app.autoConstruct = function(courses){
     range.value = 0; // and reset render
     app.courses_generator = new Lazy(app.cartesianProduct(app.removeDuplicatesBy(course => course.home, courses).reduce(function(acc, course){ // expands courses into all alt lists
 	course.home.alts.forEach(function(typePack){ // move in every typePack
-	    //first, we need to check if we need to move any courses to the front of their typePack
-	    //this makes auto<->manual switches behave as expected
-	    courses.forEach(function(compareCourse){
-		if(typePack.includes(compareCourse)){
-		    typePack = typePack.filter(c => c!=compareCourse); // remove course
-		    typePack.unshift(compareCourse); // then re-add it to front
-		}	
-	    });
-	    acc.push(app.closed ? typePack : typePack.filter(c => c.seatsAvailable > 0)); // filter out courses that are closed
+	    // first, factor in any locked courses
+	    let locked = typePack.filter(c => c.locked);
+	    if(locked.length)
+		typePack = locked; // force 0-length typePack
+	    else
+		//then, we need to check if we need to move any courses to the front of their typePack
+		//this makes auto<->manual switches behave as expected
+		courses.forEach(function(compareCourse){
+		    if(typePack.includes(compareCourse)){
+			typePack = typePack.filter(c => c!=compareCourse); // remove course
+			typePack.unshift(compareCourse); // then re-add it to front
+		    }	
+		});
+	    acc.push(app.closed ? typePack : typePack.filter(c => c.seatsAvailable > 0 || c.locked)); // filter out courses that are closed
 	});
+	//76584
+	//83912
 	return acc;
     }, []))).filter(app.schedCompat);
     app.savedCourseGenerator = "A"+app.removeDuplicatesBy(course => course.home, courses).map(el => el.home.URLcode).filter(c => c).join() + (app.closed ? "C" : "");

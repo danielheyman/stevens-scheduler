@@ -111,7 +111,7 @@ app.fillSchedule = function(referrer = null) {
     app.course = document.getElementById("selectBox").value != "" ? parseInt(document.getElementById("selectBox").value, 10) : null;
     var wrappers = document.getElementsByClassName("wrapperInternal");
     var schedule = app.autoConstruct(app.selected.concat(app.course !== null ? app.courses[app.course] : null)).get(app.mode == 'Manual' ? 0 : app.course_list_selection);
-    // Then, cycle through and build a divlist
+    // Then, cycle through and build a divlist -- needed for onclick listeners
     var divTracker = [];
     for(var i=0; i < wrappers.length; ++i){
 	var wrapper = wrappers[i];
@@ -123,6 +123,28 @@ app.fillSchedule = function(referrer = null) {
 	    var course = schedule[j];
 	    var courseHere = app.courseHere(day, hour, course);
 	    if(course && courseHere){
+		var ext = document.createElement("div");
+		if(app.mode == "Automatic" || !app.autoInAlts(course, app.course !== null ? app.courses[app.course] : null)){
+		    var checkWrapper = document.createElement("div");
+		    checkWrapper.className = "autoLock";
+		    if(course.locked)
+			checkWrapper.innerText = "🔒"; // closed lock
+		    else
+			checkWrapper.innerText = "🔓 "; // open lock
+		    checkWrapper.onclick = function(c){
+			return function(ref){
+			    app.autoConstruct(app.selected.concat(app.course !== null ? app.courses[app.course] : null)).get(app.course_list_selection, true); // set selected to what's shown on schedule
+			    c.locked = !c.locked;
+			    app.savedCourseGenerator = ""; // force recalc
+			    app.fillSchedule();
+			    if(app.course !== null && !app.autoInAlts(app.courses[app.course], c))
+				location.hash = app.generateHash(false); // force hash update
+			};
+		    }(course);
+		    checkWrapper.style.top = courseHere.top * 100 + '%';
+		    ext.appendChild(checkWrapper);
+		}
+		
 		var div = document.createElement("div");
 		div.className = "item";
 		var innerText = course.subject + ' ' + course.courseNumber + '\n' + course.title.replace(/&ndash;/g, "–") + '\n' + (course.faculty.trim().length ? (course.faculty + '\n') : "") + (courseHere.loc.length ? (courseHere.loc + '\n') : "") + course.credits + ' credit' + (course.credits !=1 ? 's' : '') + '\n';
@@ -147,7 +169,8 @@ app.fillSchedule = function(referrer = null) {
 		div.style.top = div.getAttribute("data-top") * 100 + '%';
 		div.style.height = app.hovering.includes(course) ? 'auto' : div.getAttribute("data-length") * 100 + '%';
 		div.style.minHeight = !app.hovering.includes(course) ? 'auto' : div.getAttribute("data-length") * 100 + '%';
-		wrapper.appendChild(div);
+		ext.appendChild(div);
+		wrapper.appendChild(ext);
 		divTracker.push(div);
 	    }
 	}
@@ -163,6 +186,27 @@ app.fillSchedule = function(referrer = null) {
     for(var j=0; j<webClasses.length; ++j){
 	var course = webClasses[j];
 	if(course){
+	    var ext = document.createElement("div");
+	    if(app.mode == "Automatic" || !app.autoInAlts(course, app.course !== null ? app.courses[app.course] : null)){
+		var checkWrapper = document.createElement("div");
+		checkWrapper.className = "autoLock";
+		if(course.locked)
+		    checkWrapper.innerText = "🔒"; // closed lock
+		else
+		    checkWrapper.innerText = "🔓 "; // open lock
+		checkWrapper.onclick = function(c){
+		    return function(ref){
+			app.autoConstruct(app.selected.concat(app.course !== null ? app.courses[app.course] : null)).get(app.course_list_selection, true); // set selected to what's shown on schedule
+			c.locked = !c.locked;
+			app.savedCourseGenerator = ""; // force recalc
+			app.fillSchedule();
+			if(app.course !== null && !app.autoInAlts(app.courses[app.course], c))
+			    location.hash = app.generateHash(false); // force hash update
+		    };
+		}(course);
+		ext.appendChild(checkWrapper);
+	    }
+	    
 	    var div = document.createElement("div");
 	    div.className = "item";
 	    var innerText = course.subject + ' ' + course.courseNumber + '\n' + course.title.replace(/&ndash;/g, "–") + '\n' + (course.faculty.trim().length ? (course.faculty + '\n') : "") + course.credits + ' credit' + (course.credits !=1 ? 's' : '') + '\n';
@@ -182,7 +226,8 @@ app.fillSchedule = function(referrer = null) {
 	    div.setAttribute("data-index", course.index);
 	    if(!app.autoInAlts(course, app.course !== null ? app.courses[app.course] : null)) // run a single update instantly - fixes flashing in some cases
 		div.classList.add("selected");
-	    web.appendChild(div);
+	    ext.appendChild(div);
+	    web.appendChild(ext);
 	    divTracker.push(div);
 	}
     }
@@ -197,10 +242,16 @@ app.fillSchedule = function(referrer = null) {
 		    div.classList.add("selected");
 		else
 		    div.classList.remove("selected");
-		if(course !== null && app.hovering.includes(course))
+		let autoLock = div.parentElement.getElementsByClassName("autoLock");
+		if(course !== null && app.hovering.includes(course)){
+		    if(autoLock.length)
+			autoLock[0].classList.add("hovering");
 		    div.classList.add("hovering");
-		else
+		} else {
+		    if(autoLock.length)
+			autoLock[0].classList.remove("hovering");
 		    div.classList.remove("hovering");
+		}
 		if(div.getAttribute("data-top")){ // non-web
 		    div.style.top = div.getAttribute("data-top") * 100 + '%';
 		    div.style.height = (course !== null && app.hovering.includes(course)) ? 'auto' : div.getAttribute("data-length") * 100 + '%';
@@ -270,11 +321,11 @@ window.onhashchange = function(){
     //IE, if hash agrees with loaded schedule
     if(!app.disableOnHashChange && !(app.generateHash(false) == app.getHash().substr(1))){
 	if(!app.getHash().substr(1).split("=")[0].length){ // empty hash
-            app.clear();
+	    app.clear();
 	} else {
-            //then load selected & render on screen
-            app.changedTerm("first", {value: app.terms[app.terms.map(el => el.URLcode).indexOf(app.getHash().split("=")[0].substr(1))].URLcode}); // need to pend a term change, just like loading a schedule
-            app.updateTerms();
+	    //then load selected & render on screen
+	    app.changedTerm("first", {value: app.terms[app.terms.map(el => el.URLcode).indexOf(app.getHash().split("=")[0].substr(1))].URLcode}); // need to pend a term change, just like loading a schedule
+	    app.updateTerms();
 	}
     }
     app.disableOnHashChange = false;
@@ -398,28 +449,10 @@ app.fetchDescription = function(course){
 app.dayUpdate = function(){
     //first, hide weekends
     if(app.mode == "Automatic"){ // check if valid
-	if((app.selected.length == 0) || (app.courses_generator && app.courses_generator.data && app.courses_generator.data[app.course_list_selection])){
-	    //good to go
+	if((app.selected.length == 0) || (app.courses_generator && app.courses_generator.data && app.courses_generator.data[app.course_list_selection])) //good to go
 	    document.getElementById("noSchedWrapper").style.display = "none";
-	    if(document.getElementById("schedTbody").children[0].children[1].style.display == "none"){
-		for(var i=1; i<=5; ++i){
-		    var trs = document.getElementById("schedTbody").children;
-		    for(var j=0; j<trs.length; ++j){
-			trs[j].children[i].style.display = "";
-		    }
-		}
-	    }
-	} else { // no valid schedules - show msg
+	else // no valid schedules - show msg
 	    document.getElementById("noSchedWrapper").style.display = "";
-	    if(document.getElementById("schedTbody").children[0].children[1].style.display == ""){
-		for(var i=1; i<=5; ++i){
-		    var trs = document.getElementById("schedTbody").children;
-		    for(var j=0; j<trs.length; ++j){
-			trs[j].children[i].style.display = "none";
-		    }
-		}
-	    }
-	} // let it continue - will wipe saturdays & sundays
     } else { // Manual - always valid
 	document.getElementById("noSchedWrapper").style.display = "none";
 	if(document.getElementById("schedTbody").children[0].children[1].style.display == "none"){
@@ -431,7 +464,6 @@ app.dayUpdate = function(){
 	    }
 	}
     }
-
     
     //then, show only what needed
     if((app.course === null ? app.selected : app.selected.concat(app.courses[app.course])) // saturday
@@ -488,7 +520,10 @@ app.loadHash = function(first = false){
     }
     var hashes = app.getHash().split("=")[1].split("&")[0].split(",");
     app.selected = app.courses.filter(function(course){
-	return hashes.indexOf(course.URLcode.toString()) > -1;
+	let ret = hashes.map(hash => hash.replace("!", "")).indexOf(course.URLcode.toString());
+	if(ret > -1)
+	    course.locked = hashes[ret][hashes[ret].length-1] == "!";
+	return ret > -1;
     });
     document.getElementById("closedCheck").checked = Boolean(app.getHash().split("&")[1]);
     app.closed = Boolean(app.getHash().split("&")[1]);
@@ -499,9 +534,9 @@ app.loadHash = function(first = false){
 	    if(JSON.parse(window.localStorage.schedules)[saves[i].innerText].split("+")[0] == app.getHash().split("#")[1])
 		possible.push(saves[i]);
 	var lastMatch = possible.filter(function(element){ // sees if there's any save that was also most recently used
-	    return JSON.parse(window.localStorage.schedules)[element.innerText].split("+")[0] + "!" + element.innerText == window.localStorage.lastSaved;
+	    return JSON.parse(window.localStorage.schedules)[element.innerText].split("+")[0] + "?" + element.innerText == window.localStorage.lastSaved;
 	});
-	if(possible.length){ // previous - load and update
+	if(possible.length){ // no matches - probably completly new
 	    (lastMatch.length ? lastMatch[0] : possible[0]).classList.add("selected"); // if we're reloading, go for the known correct schedule. Else, go for the first one to match
 	    app.currentstorage = (lastMatch.length ? lastMatch[0] : possible[0]).innerText;
 	    // and update notes too
@@ -525,6 +560,7 @@ app.loadHash = function(first = false){
 app.click = function(course){
     if(course === null)
 	return;
+    course.locked = false;
     if (app.autoInAlts(app.course !== null ? app.courses[app.course] : null, course)){ // needs to be added to selected
 	ga('send', 'event', 'course', 'add');
 	document.getElementById("selectBox").value = "";

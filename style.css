@@ -42,7 +42,6 @@ body {
     position: fixed;
     top: 0;
     left: 0;
-    overflow: auto;
     bottom: 25px;
 }
 
@@ -54,10 +53,6 @@ body {
     right: 0;
     top: 0;
     position: fixed;
-}
-
-#logo{
-    padding: 10px 10px 0px 10px;
 }
 
 .right {
@@ -79,22 +74,49 @@ body {
     margin-top: 5px;
 }
 
-table {
+#weekTableHead {
+    width: 100%;
+    height: auto;
+    table-layout: fixed;
+    top: 0;
+    bottom: 0;
+    border-collapse: collapse;
+    min-width: 500px;
+    overflow: hidden;
+}
+
+#weekTableWrapper {
+    overflow-y: auto;
+    position: absolute;
+    bottom: 0;
+    top: 26px;
+}
+
+#weekTable {
     width: 100%;
     height: 100%;
     table-layout: fixed;
-    position: absolute;
     top: 0;
     bottom: 0;
     border-collapse: collapse;
     min-height: 800px;
     min-width: 500px;
-    overflow: hidden;
+}
+
+#weekTableHeadWrapper {
+    border-bottom:1px solid #333
+}
+
+table tbody tr {
+    border-top:1px solid #333
+}
+
+table tbody tr:first-child {
+    border-top:0px
 }
 
 table tbody td {
-    border-right: 1px solid #333;
-    border-top: 1px solid #333;
+    border-right:1px solid #333;
 }
 
 table .time {
@@ -104,7 +126,7 @@ table .time {
     font-weight: bold;
 }
 
-table thead tr {
+#schedThead {
     background: #eee;
     text-align: center;
     font-weight: bold;
@@ -112,6 +134,7 @@ table thead tr {
 }
 
 table .block {
+    padding: 0;
     vertical-align: top;
     position: relative;
 }
@@ -148,7 +171,24 @@ table .item.selected {
 
 table .item.selected.hovering {
     background: rgba(222, 104, 73, 0.8);
+    z-index: 4;
+}
+
+.autoLock{
+    background-color: white;
+    border: 1px solid black;
     z-index: 3;
+    position: absolute;
+    right: 1%;
+    cursor: pointer;
+    -webkit-user-select: none;     
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.autoLock.hovering{
+    z-index: 5;
 }
 
 .selectedList {
@@ -270,13 +310,15 @@ table .item.selected.hovering {
 }
 
 #noSchedWrapper{
+    position: absolute;
     padding-left: 50px;
-    padding-top: 25px;
+    padding-top: 26px;
     height: 100%;
     width: 100%;
 }
 
 #noSchedAlign{
+    background-color: #eeea;
     height: 100%;
     width: 100%;
     display: flex;
@@ -285,6 +327,9 @@ table .item.selected.hovering {
 }
 
 #noSched{
+    border-radius: 100px;
+    z-index: 6;
+    background: #ddd;
     width: 400px;
     text-align: center;
 }

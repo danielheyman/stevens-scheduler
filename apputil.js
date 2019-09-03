@@ -35,6 +35,8 @@ app.autoInAlts()
  * if includeNotes is set to true (used for saving schedules),
  * they are appended at the end of the hash, after a "+"
  *
+ * Additionally, after each CRN, if the course is locked, append a !
+ *
  * @param   {boolean}  includeNotes  Add notes to return
  * @returns {string}                 Hash
  *
@@ -43,9 +45,9 @@ app.autoInAlts()
  */
 app.generateHash = function(includeNotes) {
     var hash = app.term + "=";
-    hash += app.selected.map(function(s){
-	return s.URLcode;
-    }).sort((a, b) => parseInt(a, 10)-parseInt(b, 10)).join();
+    hash += app.selected.sort((a, b) => a.URLcode - b.URLcode).map(function(s){
+	return s.URLcode + (Boolean(s.locked) ? "!" : "");
+    }).join();
     if(app.closed)
 	hash += "&C";
     if(includeNotes === true)

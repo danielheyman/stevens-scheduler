@@ -214,7 +214,7 @@ app.save = function() {
     
     schedules[app.currentstorage] = app.generateHash(true);
     window.localStorage.setItem('schedules', JSON.stringify(schedules));
-    window.localStorage.setItem('lastSaved', app.generateHash(false) + "!" + app.currentstorage);
+    window.localStorage.setItem('lastSaved', app.generateHash(false) + "?" + app.currentstorage);
     
     app.updateSaved();
 };
@@ -237,7 +237,6 @@ app.load = function(schedule) {
     if(app.changed())
         if (!window.confirm("Are you sure you want to discard your changes?"))
 	    return false;
-    //legacy GA
     ga('send', 'event', 'schedule', 'load');
     app.currentstorage = schedule;
     document.getElementById("notes").value = JSON.parse(window.localStorage.schedules)[schedule].split("+")[1];
@@ -255,11 +254,10 @@ app.load = function(schedule) {
 	app.updateTerms();
 	app.changedTerm(true); // must always load AFTER loading term
 	// Why? Term isn't always fully loaded when request goes through
-
     }
     app.updateNotes(document.getElementById("notes")); // fix style in case notes have been cached
     app.fillSchedule();
-    window.localStorage.setItem('lastSaved', app.generateHash(false) + "!" + app.currentstorage);
+    window.localStorage.setItem('lastSaved', app.generateHash(false) + "?" + app.currentstorage);
     return true;
 };
 
@@ -274,11 +272,10 @@ app.load = function(schedule) {
 app.discard = function() {
     var schedule = app.currentstorage;
     app.currentstorage = null;
-    if(app.changed() && !app.load(schedule)){
+    if(app.changed() && !app.load(schedule)){ // reset - confirmation happens in app.load
 	app.currentstorage = schedule;
 	return;
     }
-    //legacy GA                                
     ga('send', 'event', 'schedule', 'discard');
     window.localStorage.setItem('lastSaved', "{}");
 };

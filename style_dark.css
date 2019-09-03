@@ -33,16 +33,27 @@ body {
     color: #f6f3e8;
 }
 
+#weekTableHeadWrapper {
+    border-bottom: 1px solid #f8f8f2;
+}
+
+table tbody tr {
+    border-top: 1px solid #f8f8f2;
+}
+
+table tbody tr:first-child {
+    border-top: 0px;
+}
+
 table tbody td {
     border-right: 1px solid #f8f8f2;
-    border-top: 1px solid #f8f8f2;
 }
 
 table .time {
     background: #656565;
 }
 
-table thead tr {
+#schedThead {
     background: #656565;
 }
 
@@ -57,6 +68,13 @@ table .item {
 
 .selectedList div, table .item {
     background: #2f82e0b5;
+}
+
+
+
+.autoLock{
+    background-color: #555;
+    border: 1px solid #f8f8f2;
 }
 
 .footer .option.selected, .selectedList div.selected, table .item.selected {
@@ -101,4 +119,12 @@ To fix the above for the dropdown - it renders ugly with a changed background
 
 .title {
     color: #cae682;
+}
+
+#noSchedAlign{
+    background-color: #555a;
+}
+
+#noSched{
+    background-color: #242424;
 }
