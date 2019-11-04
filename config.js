@@ -612,6 +612,16 @@ var Meeting;
  */
 var Course;
 
+Date.prototype.stdTimezoneOffset = function () {
+    var jan = new Date(this.getFullYear(), 0, 1);
+    var jul = new Date(this.getFullYear(), 6, 1);
+    return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+}
+
+Date.prototype.isDstObserved = function () {
+    return this.getTimezoneOffset() < this.stdTimezoneOffset();
+}
+
 /**
  * app_config.PROCESSgetCourses(responseText)
  *
@@ -635,6 +645,7 @@ var Course;
 app_config.PROCESSgetCourses = function(responseText){
     var coursesJSON = JSON.parse(responseText);
     var ret_courses = [];
+    var today = new Date();
     coursesJSON.forEach(function(courseJSON){
 	var ret_course = {};
 
@@ -642,9 +653,9 @@ app_config.PROCESSgetCourses = function(responseText){
 	ret_course.subject = courseJSON['section'].match(/[a-zA-Z]+/g)[0];
 	ret_course.sessionMod = courseJSON['section'].match(/[a-zA-Z]+/g)[1];
 	
-	ret_course.URLcode = courseJSON['section'];
 	ret_course.courseRegistrationCode = courseJSON['callNumber'];
 	ret_course.title = courseJSON['title'];
+	ret_course.URLcode = ret_course.courseRegistrationCode;
 	
 	ret_course.credits = courseJSON['credits'];
 
@@ -661,11 +672,25 @@ app_config.PROCESSgetCourses = function(responseText){
 	ret_course.seatsAvailable = courseJSON['seatsAvailable'] ? parseInt(courseJSON['seatsAvailable'], 10) : ret_course.maximumEnrollment - parseInt(courseJSON['currentEnrollment'], 10);
 	
 	ret_course.meetings = courseJSON['daysTimeLocation'].map(function(meeting){
+	    if(meeting['site']=="WS"||meeting['room']=="WEB"){
+		ret_course.scheduleTypeDescription = "L";
+		return {
+		building: "ONLINE",
+		room: "ONLINE",
+		monday: false,
+		tuesday: false,
+		wednesday: false,
+		thursday: false,
+		friday: false,
+		saturday: false,
+		sunday: false
+		};
+	    }
 	    if(meeting.day == "TBA")
 		return;
 	    var ret = {
-		building: meeting.building,
-		room: meeting.room,
+		building: meeting['building'],
+		room: meeting['room'],
 		monday: meeting.day.includes("M"),
 		tuesday: meeting.day.includes("T"),
 		wednesday: meeting.day.includes("W"),
@@ -675,13 +700,17 @@ app_config.PROCESSgetCourses = function(responseText){
 		sunday: false
 	    };
 	    ret.beginTime = meeting.startTime.substr(0, meeting.startTime.length-4).split(":");
-	    if(parseInt(ret.beginTime[0], 10) < 8) // sometimes times aren't in military
-		ret.beginTime[0] = (parseInt(ret.beginTime[0], 10)+12).toString();
+	    // Bugs in production are fun
+	    //if(parseInt(ret.beginTime[0], 10) < 8) // sometimes times aren't in military
+	//	ret.beginTime[0] = (parseInt(ret.beginTime[0], 10)+12).toString();
 	    ret.beginTime = ret.beginTime.join("");
 	    ret.endTime = meeting.endTime.substr(0, meeting.endTime.length-4).split(":");
-	    if(parseInt(ret.endTime[0], 10) < 8) // sometimes times aren't in military
-		ret.endTime[0] = (parseInt(ret.endTime[0], 10)+12).toString();
+	  //  if(parseInt(ret.endTime[0], 10) < 8) // sometimes times aren't in military
+	//	ret.endTime[0] = (parseInt(ret.endTime[0], 10)+12).toString();
 	    ret.endTime = ret.endTime.join("");
+	    
+	    ret.beginTime=(parseInt(ret.beginTime, 10)+400+!today.isDstObserved()*100).toString(); // API isn't in local time
+	    ret.endTime=(parseInt(ret.endTime, 10)+400+!today.isDstObserved()*100).toString();
 	    return ret;
 	}).filter(meeting => meeting !== undefined);
 	ret_courses.push(ret_course);
