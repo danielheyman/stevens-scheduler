@@ -116,6 +116,9 @@ To fix the above for the dropdown - it renders ugly with a changed background
 #termSelect {
     color: #242424;
 }
+#termSelect>option {
+    color: #242424;
+}
 
 .title {
     color: #cae682;
