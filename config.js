@@ -671,7 +671,9 @@ app_config.PROCESSgetCourses = function(responseText){
 	ret_course.maximumEnrollment = parseInt(courseJSON['maxEnrollment'], 10);
 	ret_course.seatsAvailable = courseJSON['seatsAvailable'] ? parseInt(courseJSON['seatsAvailable'], 10) : ret_course.maximumEnrollment - parseInt(courseJSON['currentEnrollment'], 10);
 	
-	ret_course.meetings = courseJSON['daysTimeLocation'].map(function(meeting){
+	ret_course.meetings = courseJSON['daysTimeLocation']
+	    .filter(meeting => meeting.startTime != undefined && meeting.endTime != undefined)
+	    .map(function(meeting){
 	    if(meeting['site']=="WS"||meeting['room']=="WEB"){
 		ret_course.scheduleTypeDescription = "L";
 		return {
