@@ -452,7 +452,7 @@ app.fetchDescription = function(course){
     };
     if(!course.description){
 	// if it's not loaded, load it and cache it in the course object
-	(new Searcher("desc", app.term.toString(), course.URLcode.toString())).start(function(response){
+	(new Searcher("desc", app.term.toString(), course.GETcode.toString())).start(function(response){
 	    response = app_config.PROCESSgetDescription(response);
 	    updater(response);
 	    course.description = response;

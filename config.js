@@ -257,14 +257,14 @@ app_config.URLgetCourses = function(GETPOST, termURLcode, offset, size){
  *
  * @param {!GETPOST} GETPOST        GETPOST object
  * @param {string}   termURLcode    URL code used to represent a term in a term request
- * @param {string}   courseURLcode  URL code representing a course ID
+ * @param {string}   courseGETcode  URL code representing a course ID
  *
  * @memberOf app_config
  * @constant
  */
-app_config.URLgetDescription = function(GETPOST, termURLcode, courseURLcode){
+app_config.URLgetDescription = function(GETPOST, termURLcode, courseGETcode){
     GETPOST.openMethod = "GET";
-    GETPOST.url = app_config.URLprefix + "desc/" + courseURLcode;
+    GETPOST.url = app_config.URLprefix + "desc/" + courseGETcode;
 };
 
 /**
@@ -676,6 +676,7 @@ app_config.PROCESSgetCourses = function(responseText){
 	    ret_course.courseRegistrationCode = courseJSON['callNumber'];
 	    ret_course.title = courseJSON['title'];
 	    ret_course.URLcode = ret_course.courseRegistrationCode;
+	    ret_course.GETcode = ret_course.subject + " " +	ret_course.courseNumber + ret_course.sessionMod;
 	    
 	    ret_course.credits = courseJSON['credits'];
 	    ret_course.faculty = courseJSON['instructor'];
