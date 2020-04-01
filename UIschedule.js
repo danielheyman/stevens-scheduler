@@ -47,7 +47,7 @@ app.click()
 
 app.loadHash()
 >loads a hash from URL
- */
+*/
 
 // remove app.course and re-render
 // used to de-select a pending (rendered in blue) course
@@ -110,7 +110,7 @@ app.fillSchedule = function(referrer = null) {
 	app.course_list_selection = referrer.value;
     app.course = document.getElementById("selectBox").value != "" ? parseInt(document.getElementById("selectBox").value, 10) : null;
     var wrappers = document.getElementsByClassName("wrapperInternal");
-    var schedule = app.autoConstruct(app.selected.concat(app.course !== null ? app.courses[app.course] : null)).get(app.mode == 'Manual' ? 0 : app.course_list_selection);
+    var schedule = app.autoConstruct(app.selected.concat(app.course !== null ? app.courses[app.course] : null), true).get(app.mode == 'Manual' ? 0 : app.course_list_selection);
     // Then, cycle through and build a divlist -- needed for onclick listeners
     var divTracker = [];
     for(var i=0; i < wrappers.length; ++i){
@@ -124,6 +124,7 @@ app.fillSchedule = function(referrer = null) {
 	    var courseHere = app.courseHere(day, hour, course);
 	    if(course && courseHere){
 		var ext = document.createElement("div");
+		
 		if(app.mode == "Automatic" || !app.autoInAlts(course, app.course !== null ? app.courses[app.course] : null)){
 		    var checkWrapper = document.createElement("div");
 		    checkWrapper.className = "autoLock";
@@ -131,7 +132,7 @@ app.fillSchedule = function(referrer = null) {
 			checkWrapper.innerText = "🔒"; // closed lock
 		    else
 			checkWrapper.innerText = "🔓 "; // open lock
-		    checkWrapper.onclick = function(c){
+		    checkWrapper.onclick = function(c, w){
 			return function(ref){
 			    app.autoConstruct(app.selected.concat(app.course !== null ? app.courses[app.course] : null)).get(app.course_list_selection, true); // set selected to what's shown on schedule
 			    c.locked = !c.locked;
@@ -140,12 +141,13 @@ app.fillSchedule = function(referrer = null) {
 			    if(app.course !== null && !app.autoInAlts(app.courses[app.course], c))
 				location.hash = app.generateHash(false); // force hash update
 			};
-		    }(course);
+		    }(course, checkWrapper);
 		    checkWrapper.style.top = courseHere.top * 100 + '%';
 		    ext.appendChild(checkWrapper);
 		}
 		
 		var div = document.createElement("div");
+		
 		div.className = "item";
 		var innerText = course.subject + ' ' + course.courseNumber + '\n' + course.title.replace(/&ndash;/g, "–") + '\n' + (course.faculty.trim().length ? (course.faculty + '\n') : "") + (courseHere.loc.length ? (courseHere.loc + '\n') : "") + course.credits + ' credit' + (course.credits !=1 ? 's' : '') + '\n';
 		if((course.seatsAvailable !== undefined) && (course.maximumEnrollment !== undefined))
@@ -169,7 +171,19 @@ app.fillSchedule = function(referrer = null) {
 		div.style.top = div.getAttribute("data-top") * 100 + '%';
 		div.style.height = app.hovering.includes(course) ? 'auto' : div.getAttribute("data-length") * 100 + '%';
 		div.style.minHeight = !app.hovering.includes(course) ? 'auto' : div.getAttribute("data-length") * 100 + '%';
+		
+		if(!app.closed && app.mode == "Manual" && !course.locked && course.seatsAvailable <= 0){ // show as grey
+		    let align = document.createElement("div");
+		    align.className = "closedAlign";
+		    let msg = document.createElement("div");
+		    msg.className = "closedMsg";
+		    msg.innerText = "CLOSED";
+		    
+		    align.appendChild(msg);
+		    div.insertBefore(align, div.childNodes[0]);
+		}
 		ext.appendChild(div);
+		
 		wrapper.appendChild(ext);
 		divTracker.push(div);
 	    }
@@ -227,6 +241,16 @@ app.fillSchedule = function(referrer = null) {
 	    if(!app.autoInAlts(course, app.course !== null ? app.courses[app.course] : null)) // run a single update instantly - fixes flashing in some cases
 		div.classList.add("selected");
 	    ext.appendChild(div);
+	    if(!app.closed && app.mode == "Manual" && !course.locked && course.seatsAvailable <= 0){ // show as grey
+		let align = document.createElement("div");
+		align.className = "closedAlign";
+		let msg = document.createElement("div");
+		msg.className = "closedMsg";
+		msg.innerText = "CLOSED";
+		
+		align.appendChild(msg);
+		div.insertBefore(align, div.childNodes[0]);
+	    }
 	    web.appendChild(ext);
 	    divTracker.push(div);
 	}
@@ -260,6 +284,7 @@ app.fillSchedule = function(referrer = null) {
 	    }
 	};
     }(divTracker);
+    update(); // force hover update - if not here, app.hovering might accidentally get cleared
     for(var j=0; j<divTracker.length; ++j){
 	divTracker[j].ondblclick = function(course){
 	    return function(){
@@ -268,13 +293,13 @@ app.fillSchedule = function(referrer = null) {
 		document.getElementById("selectBox").value = "";
 	    };
 	}(app.courses[divTracker[j].getAttribute("data-index")]);
-	divTracker[j].onmouseenter = function(course){
+	divTracker[j].parentElement.onmouseover = function(course){
 	    return function(){
 		app.hovering = app.autoAndLabs(course);
 		update();
 	    };
 	}(app.courses[divTracker[j].getAttribute("data-index")]);
-	divTracker[j].onmouseleave = function(){
+	divTracker[j].parentElement.onmouseout = function(){
 	    return function(){
 		app.hovering = [];
 		update();
@@ -536,7 +561,7 @@ app.loadHash = function(first = false){
 	var lastMatch = possible.filter(function(element){ // sees if there's any save that was also most recently used
 	    return JSON.parse(window.localStorage.schedules)[element.innerText].split("+")[0] + "?" + element.innerText == window.localStorage.lastSaved;
 	});
-	if(possible.length){ // no matches - probably completly new
+	if(possible.length){ // previous - load and update
 	    (lastMatch.length ? lastMatch[0] : possible[0]).classList.add("selected"); // if we're reloading, go for the known correct schedule. Else, go for the first one to match
 	    app.currentstorage = (lastMatch.length ? lastMatch[0] : possible[0]).innerText;
 	    // and update notes too

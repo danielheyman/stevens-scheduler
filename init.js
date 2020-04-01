@@ -143,23 +143,25 @@ app.term = "";
  * app.courses_auto 
  *
  * list of course divs that are up for selection in automatic mode
+ * stored as a string to save computation time
  * see librequests.js for generation and UIright.js for usage
  *
- * @type {!Array<!Element>}
+ * @type {string}
  * @memberOf app
  */
-app.courses_auto = [];
+app.courses_auto = "";
 
 /**
  * app.courses_manual
  * 
  * list of course divs that are up for selection in manual mode
+ * stored as a string to save computation time
  * see librequests.js for generation and UIright.js for usage
  *
- * @type {!Array<!Element>}
+ * @type {string}
  * @memberOf app
  */
-app.courses_manual = [];
+app.courses_manual = "";
 
 /**
  * app.closed

@@ -45,7 +45,10 @@ app.autoInAlts()
  */
 app.generateHash = function(includeNotes) {
     var hash = app.term + "=";
-    hash += app.selected.sort((a, b) => a.URLcode - b.URLcode).map(function(s){
+    var selected = app.selected;
+    if(app.mode === "Automatic" && app.courses_generator && app.courses_generator.data && app.courses_generator.data[app.course_list_selection])
+	selected = app.courses_generator.data[app.course_list_selection].selected;
+    hash += selected.sort((a, b) => a.URLcode - b.URLcode).map(function(s){
 	return s.URLcode + (Boolean(s.locked) ? "!" : "");
     }).join();
     if(app.closed)

@@ -16,6 +16,8 @@ Those sections are as follows:
  L->Used to process incoming requests and construct course objects
 -misc
  L->Used for determining names of files, error messages, and your college's name
+
+NOTE: This project requires minification. Run the make command to see changes in browser.
 */
 
 /**
@@ -26,7 +28,7 @@ Those sections are as follows:
  * @namespace
  * @constant
  */
-let app_config = {}; // used for namespace and definition order reasons
+const app_config = {};
 
 /*_____  ________      ________ _      ____  _____  ______ _____  
  |  __ \|  ____\ \    / /  ____| |    / __ \|  __ \|  ____|  __ \ 
@@ -612,15 +614,32 @@ var Meeting;
  */
 var Course;
 
+/**
+ * stdTimezoneOffset
+ * Add this so that the sit backend doesn't screw up daylight savings time (because for some reason it's included)
+ *
+ * @returns {number}
+ *
+ * @constant
+ */
 Date.prototype.stdTimezoneOffset = function () {
     var jan = new Date(this.getFullYear(), 0, 1);
     var jul = new Date(this.getFullYear(), 6, 1);
     return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
-}
+};
 
+
+/**
+ * isDstObserved
+ * Add this so that the sit backend doesn't screw up daylight savings time (because for some reason it's included)
+ *
+ * @returns {boolean}
+ *
+ * @constant
+ */
 Date.prototype.isDstObserved = function () {
     return this.getTimezoneOffset() < this.stdTimezoneOffset();
-}
+};
 
 /**
  * app_config.PROCESSgetCourses(responseText)
@@ -649,73 +668,71 @@ app_config.PROCESSgetCourses = function(responseText){
     coursesJSON.forEach(function(courseJSON){
 	var ret_course = {};
 
-	ret_course.courseNumber = courseJSON['section'].match(/\d+/g)[0];
-	ret_course.subject = courseJSON['section'].match(/[a-zA-Z]+/g)[0];
-	ret_course.sessionMod = courseJSON['section'].match(/[a-zA-Z]+/g)[1];
-	
-	ret_course.courseRegistrationCode = courseJSON['callNumber'];
-	ret_course.title = courseJSON['title'];
-	ret_course.URLcode = ret_course.courseRegistrationCode;
-	
-	ret_course.credits = courseJSON['credits'];
-
-	ret_course.faculty = courseJSON['instructor'];
-
-	var section = courseJSON['section'].match(/[a-zA-Z]+/g)[1];
-	if(section.length <= 1)
-	    ret_course.scheduleTypeDescription = "Lecture";
-	else
-	    ret_course.scheduleTypeDescription = section[0];
-	// this covers "L"abs, "R"escissions, "W"orkshops, etc
-
-	ret_course.maximumEnrollment = parseInt(courseJSON['maxEnrollment'], 10);
-	ret_course.seatsAvailable = courseJSON['seatsAvailable'] ? parseInt(courseJSON['seatsAvailable'], 10) : ret_course.maximumEnrollment - parseInt(courseJSON['currentEnrollment'], 10);
-	
-	ret_course.meetings = courseJSON['daysTimeLocation']
-	    .filter(meeting => meeting.startTime != undefined && meeting.endTime != undefined)
-	    .map(function(meeting){
-	    if(meeting['site']=="WS"||meeting['room']=="WEB"){
-		ret_course.scheduleTypeDescription = "L";
-		return {
-		building: "ONLINE",
-		room: "ONLINE",
-		monday: false,
-		tuesday: false,
-		wednesday: false,
-		thursday: false,
-		friday: false,
-		saturday: false,
-		sunday: false
-		};
-	    }
-	    if(meeting.day == "TBA")
-		return;
-	    var ret = {
-		building: meeting['building'],
-		room: meeting['room'],
-		monday: meeting.day.includes("M"),
-		tuesday: meeting.day.includes("T"),
-		wednesday: meeting.day.includes("W"),
-		thursday: meeting.day.includes("R"),
-		friday: meeting.day.includes("F"),
-		saturday: false,
-		sunday: false
-	    };
-	    ret.beginTime = meeting.startTime.substr(0, meeting.startTime.length-4).split(":");
-	    // Bugs in production are fun
-	    //if(parseInt(ret.beginTime[0], 10) < 8) // sometimes times aren't in military
-	//	ret.beginTime[0] = (parseInt(ret.beginTime[0], 10)+12).toString();
-	    ret.beginTime = ret.beginTime.join("");
-	    ret.endTime = meeting.endTime.substr(0, meeting.endTime.length-4).split(":");
-	  //  if(parseInt(ret.endTime[0], 10) < 8) // sometimes times aren't in military
-	//	ret.endTime[0] = (parseInt(ret.endTime[0], 10)+12).toString();
-	    ret.endTime = ret.endTime.join("");
+	try {
+	    ret_course.courseNumber = courseJSON['section'].match(/\d+/g)[0];
+	    ret_course.subject = courseJSON['section'].match(/[a-zA-Z]+/g)[0];
+	    ret_course.sessionMod = courseJSON['section'].match(/[a-zA-Z]+/g)[1];
 	    
-	    ret.beginTime=(parseInt(ret.beginTime, 10)+400+!today.isDstObserved()*100).toString(); // API isn't in local time
-	    ret.endTime=(parseInt(ret.endTime, 10)+400+!today.isDstObserved()*100).toString();
-	    return ret;
-	}).filter(meeting => meeting !== undefined);
-	ret_courses.push(ret_course);
+	    ret_course.courseRegistrationCode = courseJSON['callNumber'];
+	    ret_course.title = courseJSON['title'];
+	    ret_course.URLcode = ret_course.courseRegistrationCode;
+	    
+	    ret_course.credits = courseJSON['credits'];
+	    ret_course.faculty = courseJSON['instructor'];
+
+	    var section = courseJSON['section'].match(/[a-zA-Z]+/g)[1];
+	    if(section.length <= 1)
+		ret_course.scheduleTypeDescription = "Lecture";
+	    else
+		ret_course.scheduleTypeDescription = section[0];
+	    // this covers "L"abs, "R"escissions, "W"orkshops, etc
+
+	    ret_course.maximumEnrollment = parseInt(courseJSON['maxEnrollment'], 10);
+	    ret_course.seatsAvailable = courseJSON['seatsAvailable'] ? parseInt(courseJSON['seatsAvailable'], 10) : ret_course.maximumEnrollment - parseInt(courseJSON['currentEnrollment'], 10);
+	    
+	    ret_course.meetings = courseJSON['daysTimeLocation']
+		.filter(meeting => meeting.startTime != undefined && meeting.endTime != undefined)
+		.map(function(meeting){
+		    if(meeting['site']=="WS"||meeting['room']=="WEB"){
+			ret_course.scheduleTypeDescription = "L";
+			return {
+			    building: "ONLINE",
+			    room: "ONLINE",
+			    monday: false,
+			    tuesday: false,
+			    wednesday: false,
+			    thursday: false,
+			    friday: false,
+			    saturday: false,
+			    sunday: false
+			};
+		    }
+		    if(meeting.day == "TBA")
+			return;
+		    var ret = {
+			building: meeting['building'],
+			room: meeting['room'],
+			monday: meeting.day.includes("M"),
+			tuesday: meeting.day.includes("T"),
+			wednesday: meeting.day.includes("W"),
+			thursday: meeting.day.includes("R"),
+			friday: meeting.day.includes("F"),
+			saturday: false,
+			sunday: false
+		    };
+		    ret.beginTime = meeting.startTime.substr(0, meeting.startTime.length-4).split(":");
+		    ret.beginTime = ret.beginTime.join("");
+		    ret.endTime = meeting.endTime.substr(0, meeting.endTime.length-4).split(":");
+		    ret.endTime = ret.endTime.join("");
+		    
+		    ret.beginTime=(parseInt(ret.beginTime, 10)+400+!today.isDstObserved()*100).toString(); // API isn't in local time
+		    ret.endTime=(parseInt(ret.endTime, 10)+400+!today.isDstObserved()*100).toString();
+		    return ret;
+		}).filter(meeting => meeting !== undefined);
+	    ret_courses.push(ret_course);
+	} catch (error) {
+	    console.error("Something's wrong with a course. Ignoring: ", ret_course);
+	}
     });
     return ret_courses.map(function(course){ // deal with "S" courses
 	if(course.scheduleTypeDescription == "S")

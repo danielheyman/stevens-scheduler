@@ -66,11 +66,13 @@ table .item {
     color: #e7f6da;
 }
 
+.closedAlign {
+    background-color: #0008;
+}
+
 .selectedList div, table .item {
     background: #2f82e0b5;
 }
-
-
 
 .autoLock{
     background-color: #555;

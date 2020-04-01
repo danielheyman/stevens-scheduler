@@ -23,20 +23,20 @@ TermCacher
 /**
  * postProcessCourses(courses)
  * 
- * after a term is fully loaded, all courses are extracted and ran through here				 
- * a few important steps are taken:									 
- * 1) if a course has no meeting times, get rid of it							 
- * 2) if a course is a honors section, remove the honors in the scheduleTypeDescription			 
- *    this allows honors sections to still appear as honors but render like normal courses		 
- * 3) build alts list											 
- *    this step is important for automatic mode								 
- *    this will take all classes with the same number (ex: MATH 101)					 
- *    then seperate them into lectures, labs, recitation, workshops, ect.				 
- *    and place those in a list of [[lecture...],[lab...],[rec...]]					 
- *    then, link that list in the FIRST course of that name						 
- *    and for all other courses, add a .home member which points to that first course			 
- * 4) add an index to each course									 
- *    this is done because HTML <selection>s don't support objects in <option>s				 
+ * after a term is fully loaded, all courses are extracted and ran through here
+ * a few important steps are taken:
+ * 1) if a course has no meeting times, get rid of it
+ * 2) if a course is a honors section, remove the honors in the scheduleTypeDescription 
+ *    this allows honors sections to still appear as honors but render like normal courses 
+ * 3) build alts list 
+ *    this step is important for automatic mode 
+ *    this will take all classes with the same number (ex: MATH 101) 
+ *    then seperate them into lectures, labs, recitation, workshops, ect. 
+ *    and place those in a list of [[lecture...],[lab...],[rec...]] 
+ *    then, link that list in the FIRST course of that name 
+ *    and for all other courses, add a .home member which points to that first course 
+ * 4) add an index to each course 
+ *    this is done because HTML <selection>s don't support objects in <option>s 
  *    so, instead we store the index of the course and when we pull it out, look in the big list by index
  * 
  * @param   {!Array<!Course>} courses    courses to process
@@ -139,11 +139,12 @@ class Searcher{
      * starts the request
      * if already loaded, callback is executed immediatly
      *
-     * @param {?function(string)|?function(boolean)} [callback]  function which will be executed upon completion
+     * @param {?function(string)|?function(boolean)} [callback]        executed upon successful completion
+     * @param {?function(number, string)}            [callback_error]  executed on unexpected HTTP error
      *
      * @constant
      */
-    start(callback = null){
+    start(callback = null, callback_error = null){
 	if(this.xhr || this.done) // don't restart if not needed
 	    return;
 	var GETPOST = {};
@@ -218,8 +219,11 @@ class Searcher{
 		    ref.xhr = null;
 		    return;
 		}
-		else if(this.status != 200 && this.status != 0){
-		    console.error("A network request failed with code " + this.status.toString()); // might need in the future for testing errors
+		else if(this.status != 200 && this.readyState == 4){
+		    if(callback_error)
+			callback_error(this.status, this.responseText); // handle error
+		    else
+			console.error("Unhandled erorr on HTTP request: ", this.status.toString());
 		}
 	    };
 	}(this);
@@ -363,6 +367,13 @@ class TermManager{
 				    }
 				}
 				// if we reach here, all of our saves are loaded and there's nothing else to do
+			    }
+			}, function(error_code, error_message){
+			    if(error_code == 404) {
+				if(error_message == "Cache not warm")
+				    alert("It looks like the server just started recently and has not downloaded data for this term yet. Please try again in a few minutes.");
+				else if(error_message !== "")
+				    console.error("Unhandled error " + error_code+":"+error_message);
 			    }
 			});
 		    });

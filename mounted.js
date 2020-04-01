@@ -21,7 +21,9 @@ window.onload = function(){
     if(window.localStorage.schedules == undefined) window.localStorage.schedules = "{}";
     if(window.localStorage.darkMode  == undefined) window.localStorage.darkMode = "false";
 
+
     //style first
+    if(window.localStorage.darkMode == undefined) window.localStorage.darkMode = "false";
     var styleSlider = document.getElementById("styleSlider");
     styleSlider.checked = window.localStorage.darkMode == "true";
     change_style(styleSlider);
@@ -32,15 +34,20 @@ window.onload = function(){
     document.getElementById("closedCheck").checked = app.closed;
 
     //check CORS
-    (new Searcher("test")).start(function(success){
-	if(success){
-	    document.getElementById("loading").style.display = "none";
-	    document.getElementById("main").style.display = "";
-	} else {
-	    document.getElementById("loading").style.display = "none";
-	    document.getElementById("cors").style.display = "";
-	}
-    });
+    if(app_config.CORStest){
+	(new Searcher("test")).start(function(success){
+	    if(success){
+		document.getElementById("loading").style.display = "none";
+		document.getElementById("main").style.display = "";
+	    } else {
+		document.getElementById("loading").style.display = "none";
+		document.getElementById("cors").style.display = "";
+	    }
+	});
+    } else {
+	document.getElementById("loading").style.display = "none";
+	document.getElementById("main").style.display = "";	
+    }
 
     //load terms -> then load courses and everything else
     (new Searcher("terms")).start(function(response){
@@ -66,7 +73,7 @@ window.onload = function(){
 	waiter: null,
 	advanceNextButton: function(e){
 	    app.genNext(nextButton);
-	    longpress.waiter = setTimeout(longpress.advanceNextButton, 50);
+	    longpress.waiter = setTimeout(longpress.advanceNextButton, 1);
 	},
 	pressingDown: function(e){
 	    app.genNext(nextButton);

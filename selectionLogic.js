@@ -137,18 +137,19 @@ class Lazy{
  * return a Lazy object which spits out valid schedules, and cache it so we don't need to generate the lazy more than once
  * 
  * @param {!Array<?Course>} courses
+ * @param {boolean}         [ignoreClosed]
  *
  * @returns {!Lazy}
  *
  * @memberof app
  * @constant
  */
-app.autoConstruct = function(courses){
+app.autoConstruct = function(courses, ignoreClosed = false){
     if(courses[0] === undefined || courses[0] === null) return new Lazy([]); // no courses - go no further
     if(courses.slice(-1)[0] === undefined || courses.slice(-1)[0] === null) // remove empty at end when no class is selected
 	courses.pop();
     if(app.mode == "Manual"){
-	courses = app.closed ? courses : courses.filter(c => c.seatsAvailable > 0 || c.locked);
+	courses = (app.closed || ignoreClosed) ? courses : courses.filter(c => c.seatsAvailable > 0 || c.locked);
 	if("M"+courses.map(course => course.URLcode).join() == app.savedCourseGenerator)
 	    return app.courses_generator || new Lazy([]); // don't have to run the calculation for every hour in every day
 	if(app.savedCourseGenerator[0] == "A" && app.course != null){ // switching from automatic to manual - update app.course

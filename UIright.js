@@ -142,7 +142,6 @@ app.genNext = function(button){
  * @constant
  */
 app.changedTerm = function(loadHash = false, referrer = null){
-    ga('send', 'event', 'term', 'change');
     if(!loadHash && referrer !== null && app.changed()){
         if (!window.confirm("Are you sure you want to discard your changes?")){
 	    document.getElementById("termSelect").value = app.term;
@@ -182,10 +181,9 @@ app.changedTerm = function(loadHash = false, referrer = null){
 	    // update UI
 	    app.courses = courses;
 	    app.genDivs();
-	    if(_loadHash)
-		app.loadHash(_loadHash == "first");
 	    app.fillSchedule();
 	    app.fillSearch();
+	    app.loadHash(_loadHash == "first");
 	    var notes = document.getElementById("notes");
 	    if(notes !== null)
 		app.updateNotes(notes); // fix style in case notes have been cached
@@ -206,33 +204,13 @@ app.changedTerm = function(loadHash = false, referrer = null){
  * @constant
  */
 app.genDivs = function(loadSelect = true){
-    var courses_auto = app.courses.reduce(function(acc, cur){
-	if(acc.length > 0){
-	    if(cur.subject + cur.courseNumber != acc[acc.length-1].subject + acc[acc.length-1].courseNumber){
-		return acc.concat(cur); // add new
-	    } else {
-		return acc; // ignore duplicate
-	    }
-	} else {
-	    return [cur]; // first iteration - set up accumulator
-	}
-    }, []);
-    app.courses_manual = [];
-    for(var i = 0; i < app.courses.length; i++){
-	var c = app.courses[i];
-	var el = document.createElement("option");
-	el.innerHTML = c.subject + ' ' + c.courseNumber + (c.sessionMod ? c.sessionMod : "") + ': ' + c.title;
-	el.value = c.index;
-	app.courses_manual.push(el);
-    }
-    app.courses_auto = [];
-    for(var i = 0; i < courses_auto.length; i++){
-	var c = courses_auto[i];
-	var el = document.createElement("option");
-	el.innerHTML = c.subject + ' ' + c.courseNumber + ': ' + c.title;
-	el.value = c.index;
-	app.courses_auto.push(el);
-    }
+    app.courses_manual = "";
+    for(var i = 0; i < app.courses.length; i++)
+	app.courses_manual += '<option value="' + app.courses[i].index + '">' + app.courses[i].subject + ' ' + app.courses[i].courseNumber + (app.courses[i].sessionMod ? app.courses[i].sessionMod : "") + ': ' + app.courses[i].title + "</option>";
+    app.courses_auto = "";
+    for(var i=0; i < app.courses.length; ++i)
+	if(i == 0 || (app.courses[i].subject + app.courses[i].courseNumber != app.courses[i-1].subject + app.courses[i-1].courseNumber))
+	    app.courses_auto += '<option value="' + app.courses[i].index + '">' + app.courses[i].subject + ' ' + app.courses[i].courseNumber + ': ' + app.courses[i].title + "</option>";
     document.getElementById("coursesBox").style.display = "";
     document.getElementById("loadingCourses").style.display = "none";
 };
@@ -286,9 +264,11 @@ app.updatePercent = function(){
 app.updateNotes = function(noteBox){
     if(!noteBox)
 	return;
-    noteBox.style.height='25px';
-    noteBox.style.height=(noteBox.scrollHeight+25)+'px';
-    app.saveMarker();
+    if(noteBox.style.height != (noteBox.scrollHeight+25)+'px'){
+	noteBox.style.height='25px';
+	noteBox.style.height=(noteBox.scrollHeight+25)+'px';
+	app.saveMarker();
+    }
 };
 
 /**
@@ -304,11 +284,7 @@ app.updateNotes = function(noteBox){
 app.fillSearch = function(referrer = null) {
     var selectBox = document.getElementById("selectBox");
     var val = selectBox.value;
-    while(selectBox.lastChild.value != "")
-	selectBox.removeChild(selectBox.lastChild);
-    var courses = app.autoFilter(referrer);
-    for(var i = 0; i < courses.length; i++)
-	selectBox.appendChild(courses[i]);
+    selectBox.innerHTML = app.autoFilter(referrer);
     selectBox.value = val;
     app.hideSearch();
 };
@@ -321,7 +297,7 @@ app.fillSearch = function(referrer = null) {
  *
  * @param   {?Element}         referrer
  *
- * @returns {!Array<?Element>}
+ * @returns {string}
  *
  * @memberof app
  * @constant
