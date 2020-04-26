@@ -5,7 +5,7 @@ If you want to make a custom theme, this would be a good place to start
 */
 
 body {
-    background: #555555;
+    background: black;
 }
 
 #loading {
@@ -17,16 +17,20 @@ body {
 }
 
 .footer {
-    background: #555555;
+    background: #333333;
     box-shadow: 0 -2px 2px rgba(0, 0, 0, .5);
 }
 
 .right {
-    background: #555555;
+    background: black;
+}
+
+.rightWrapper {
+    border-left: none;
 }
 
 .left {
-    background: #242424;
+    background: black;
 }
 
 #weekTable>thead, #weekTable .time {
@@ -34,11 +38,11 @@ body {
 }
 
 #weekTableHeadWrapper {
-    border-bottom: 1px solid #f8f8f2;
+    border-bottom: 1px solid #888;
 }
 
 table tbody tr {
-    border-top: 1px solid #f8f8f2;
+    border-top: 1px solid #656565;
 }
 
 table tbody tr:first-child {
@@ -46,15 +50,15 @@ table tbody tr:first-child {
 }
 
 table tbody td {
-    border-right: 1px solid #f8f8f2;
+    border-right: 1px solid #656565;
 }
 
 table .time {
-    background: #656565;
+    background: #282828;
 }
 
 #schedThead {
-    background: #656565;
+    background: #282828;
 }
 
 table .block .wrapper>div {
@@ -92,7 +96,7 @@ table .item.selected.hovering, .selectedList div.selected:hover {
 }
 
 .footer .option {
-    background: #757575;
+    background: #555;
 }
 
 .link {
@@ -100,26 +104,24 @@ table .item.selected.hovering, .selectedList div.selected:hover {
 }
 
 .export, .description {
-    background: rgba(0, 0, 0, .5);
+    background: #222;
 }
 
 .export .wrapper, .description .wrapper {
     background: #555555;
 }
 
-.export textarea, .export input, .right select:not(#termSelect), #searchBox, #selectBox>option, #notes, #nextButton {
-    background: #f6f3e8;
-    color: #242424;
+.export textarea, .export input, .right select:not(#termSelect), #searchBox, #selectBox>option, #notes, #nextButton, select {
+    background: #242424;
+    color: #f6f3e8;
 }
 
 /*
 To fix the above for the dropdown - it renders ugly with a changed background
 */
-#termSelect {
-    color: #242424;
-}
-#termSelect>option {
-    color: #242424;
+#termSelect, #termSelect>option {
+    background: #242424;
+    color: #f6f3e8;
 }
 
 .title {
@@ -133,3 +135,14 @@ To fix the above for the dropdown - it renders ugly with a changed background
 #noSched{
     background-color: #242424;
 }
+
+
+.slider:before {
+    background-color: #f8f8f2;
+}
+
+input:checked + .slider {
+    background-color: #555;
+}
+
+textarea
