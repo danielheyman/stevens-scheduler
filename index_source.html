@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	
+    <meta charset="utf-8">
+    <meta name="description" content="Course Scheduler for Stevens Institute of Technology. Create, save, share, and export all your schedule combinations.">
+    <script defer type="text/javascript" src="./min.js?v=0.11.3" charset="utf-8"></script>
+    
+    <!-- minified into min.js
+    <script defer type="text/javascript" src="./GA.js?v=0.8.1" charset="utf-8"></script>
+    <script defer type="text/javascript" src="./config.js?v=0.8.1" charset="utf-8"></script>
+    <script defer type="text/javascript" src="./index.js?v=0.8.1" charset="utf-8"></script>
+    <script defer type="text/javascript" src="./librequests.js?v=0.8.1" charset="utf-8"></script>
+    <script defer type="text/javascript" src="./init.js?v=0.8.1" charset="utf-8"></script>
+    <script defer type="text/javascript" src="./apputil.js?v=0.8.1" charset="utf-8"></script>
+    <script defer type="text/javascript" src="./UIschedule.js?v=0.8.1" charset="utf-8"></script>
+    <script defer type="text/javascript" src="./UIright.js?v=0.8.1" charset="utf-8"></script>
+    <script defer type="text/javascript" src="./UIsavebar.js?v=0.8.1" charset="utf-8"></script>
+    <script defer type="text/javascript" src="./selectionLogic.js?v=0.8.1" charset="utf-8"></script>
+    <script defer type="text/javascript" src="./mounted.js?v=0.8.1" charset="utf-8"></script>
+    -->
+    
+    <link rel="stylesheet" href="style.min.css?v=0.11.3">
+    <link rel="stylesheet" href="style_dark.min.css?v=0.11.3">
+  </head>
+  <body>
+    <div id="loading">
+      Loading Pure Awesomeness...
+    </div>
+    
+    <div id="cors" style="display:none;">
+      <!-- message is set in index.js -->
+    </div>
+
+    <div id="main" style="display:none;">
+      <div class="left">
+	<div id="noSchedWrapper" style="display:none;">
+	  <div id="noSchedAlign">
+	    <div id="noSched">
+	      <span>No schedules available without conflict.</span>
+	      <br>
+	      <span>Press Esc to de-select course, or enter Manual Mode.</span>
+	      <br>
+	      <span>Unlocking some sections might resolve the issue.</span>
+	    </div>
+	  </div>
+	</div>
+	<div id="weekTableHeadWrapper">
+	  <table id="weekTableHead">
+            <thead>
+              <tr id="schedThead">
+		<th class="time">
+		  <label id="switch">
+		    <input onclick="change_style(this);" type="checkbox" id="styleSlider">
+		    <span class="slider round"></span>
+		  </label>
+		</th>
+		<!--
+		    <th for="day in daylist(false)" text="day"></th>
+		    -->
+              </tr>
+            </thead>
+	  </table>
+	</div>
+	<div id="weekTableWrapper">
+	  <table id="weekTable">
+            <tbody id="schedTbody">
+	      <!--
+		  <tr for="hour in [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]">
+		    <td text="((hour - 1) % 12 + 1) + ':00'" class="time"></td>
+		    <td for="day in daylist(true)" class="block">
+                      <div class="wrapper">
+			<div class="wrapperInternal" data-hour="hour" data-day="day">
+			</div>
+			<div></div>                               
+			<div></div>                               
+                      </div>
+		    </td>
+		  </tr>
+		  -->
+            </tbody>
+	  </table>
+	</div>
+      </div>
+
+      <div class="rightWrapper">
+	<img id="logo" style="width:100%"/> <!-- src is set in config.js -->
+	<div class="right">
+	  <span class="title">Mode</span>
+	  <br>
+	  <input id="Manual" name="mode" type="radio" value="Manual" onchange="app.fillSearch(this); app.autoConstruct(app.selected.concat(app.courses[app.course])).get(0); app.fillSchedule();" checked="checked"> Manual
+	  <br>
+	  <input id="Automatic" name="mode" type="radio" value="Automatic" onchange="app.fillSearch(this); app.autoConstruct(app.selected.concat(app.courses[app.course])).get(0); app.fillSchedule();"> Automatic
+	  <br>
+	  <div id="autoBar" style="display:none;" style="width: 100%;">
+	    <input id="Range" oninput="app.fillSchedule(this);" type="range" min="0" max="0" style="width: 66%;">
+	    <button id="nextButton" style="width: 30%;float: right;"></button>
+	  </div>
+	  <span class="title">Term</span>
+	  <select onchange="app.changedTerm(false, this)" id="termSelect">
+	    <option value="" selected hidden disabled></option>
+	    <!--
+		<option for="term in terms" value="term" text="term.title"></option>
+		-->
+	  </select>
+	  <div id="coursesBox" style="display:none;">
+            <span class="title">Courses</span>
+            <input id="searchBox" oninput="app.hideSearch()" placeholder="Search for a course..." style="width: 100%;">
+            <select id="selectBox" onchange="if(app.course===null){app.autoConstruct(app.selected).get(app.course_list_selection, true);}else{app.courses[app.course].locked=false;};app.fillSchedule();" size="25">
+	      <option value="" selected disabled hidden>default</option>
+	      <!-- options are filled in automatically -->
+            </select>
+            <input id="closedCheck" onclick="app.hideSearch(this); app.fillSchedule(this)" type="checkbox"> Closed
+            <br>
+            <span id="escTip" class="hint">*Press esc to cancel selection</span>
+            
+            <br><br>
+
+	    <div>
+              <span class="title">Total Credits:</span>
+	      <span id="credits"></span><br><br>
+	    </div>
+
+	    
+            <span class="title">Notes:</span>
+	    <textarea id="notes" onkeyup="app.updateNotes(this);"></textarea>
+	    
+            <div id="webWrapper" style="display:none;">
+              <span class="title">Web Classes</span>
+              <div class="selectedList" id="web">
+		<!-- autofilled in fillSchedule
+		     <div for="c in webclasses(selected.concat(courses[course]))" @dblClick="click(c)" :class="{selected: c != courses[course] }">
+		       {data...}
+		     </div>
+		     -->
+	      </div>
+	    </div>
+	  </div>
+	  <div id="loadingCourses"></div>
+
+	  <br><br>
+
+	  * Open seats can take up to two hours to update during peak registration hours
+
+	  <div id="feedback"></div>
+
+	</div>
+      </div>
+
+      <div class="footer">
+	<div id="saves">
+	</div>
+	<div class="floatRight">
+	  <div id="marker-save" class="option" style="display:none;" onclick="app.save();">
+	    Save
+	  </div>
+	  <div id="marker-discard" class="option " style="display:none;" onclick="app.discard();">
+	    Discard Changes
+	  </div>
+	  <div id="marker-saveAsNew" class="option " style="display:none;" onclick="app.saveNew();">
+	    Save as New
+	  </div>
+	  <div id="marker-delete" class="option " style="display:none;" onclick="app.deleteSchedule();">
+	    Delete
+	  </div>
+	  <div id="marker-export" class="option " style="display:none;" onclick="app.showExport();">
+	    Export
+	  </div>
+	  <div id="marker-new" class="option " style="display:none;" onclick="app.clear();">
+	    New
+	  </div>
+	</div>
+      </div>
+      
+      <div id="export" class="export " style="display:none;" name="export" onclick="if(window.event.target === this){this.style.display = 'none';}">
+	<div class="wrapper">
+	  Share link:<br>
+	  <input type="text" id="export-link"><br><br>
+	  Course List:<br>
+	  <textarea id="export-text"></textarea>
+	</div>
+      </div>
+      
+      <div id="description" class="description " style="display:none;" name="description" onclick="if(window.event.target === this){this.style.display = 'none';}">
+	<div class="wrapper">
+	  <strong id="description-strong"></strong><br><br>
+	  <span id="description-fetch">Fetching description...</span>
+	  <span id="description-show" style="white-space: pre-wrap;"></span>
+	</div>
+      </div>
+    </div>
+  </body>
+
+</html>
