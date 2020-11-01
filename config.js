@@ -730,6 +730,12 @@ app_config.PROCESSgetCourses = function(responseText){
 		    ret.endTime=(parseInt(ret.endTime, 10)+400+!today.isDstObserved()*100).toString();
 		    return ret;
 		}).filter(meeting => meeting !== undefined);
+
+	    if(ret_course.scheduleTypeDescription == "W")
+		ret_course.meetings.push({
+		    building: "ONLINE"
+		});
+	    
 	    ret_courses.push(ret_course);
 	} catch (error) {
 	    console.error("Something's wrong with a course. Ignoring: ", ret_course);
